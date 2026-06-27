@@ -5,25 +5,34 @@ plugins {
 
 android {
     namespace = "com.example.marigold"
-    compileSdk {
-        version = beta(37) {
-            minorApiLevel = 1
-            betaVersion = 5
-        }
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.marigold"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${System.getProperty("user.home")}/.android/marigold-keystore.jks")
+            storePassword = "lamare_della_mi_vita"
+            keyAlias = "marigold_key"
+            keyPassword = "lamare_della_mi_vita"
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = true
+            enableV4Signing = true
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             optimization {
                 enable = false
             }

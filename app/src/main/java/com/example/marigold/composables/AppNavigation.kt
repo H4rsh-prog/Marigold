@@ -13,26 +13,35 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.example.marigold.composables.activities.DefineMarigold
+import com.example.marigold.composables.activities.HomeScreen
+import com.example.marigold.composables.activities.SplashScreen
 
 @Composable
 public fun AppNavigation() {
-    var showSplash by remember { mutableStateOf(true) }
+    var navIndx by remember { mutableStateOf(0) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         AnimatedVisibility(
-            visible = showSplash,
+            visible = navIndx==0,
             exit = fadeOut(animationSpec = tween(500)),
             enter = fadeIn(animationSpec = tween(500))
         ) {
-            SplashScreen({showSplash = false})
+            SplashScreen({ navIndx = 1 })
         }
-
         AnimatedVisibility(
-            visible = !showSplash,
+            visible = navIndx==1,
             enter = fadeIn(animationSpec = tween(500)),
             exit = fadeOut(animationSpec = tween(500))
         ) {
-            HomeScreen({showSplash = true})
+            HomeScreen({ navIndx = 2 })
+        }
+        AnimatedVisibility(
+            visible = navIndx==2,
+            enter = fadeIn(animationSpec = tween(500)),
+            exit = fadeOut(animationSpec = tween(500))
+        ) {
+            DefineMarigold({ navIndx = 0 })
         }
     }
 }
