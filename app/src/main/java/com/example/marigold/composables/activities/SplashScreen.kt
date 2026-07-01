@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,11 +30,15 @@ import com.example.marigold.R
 import kotlinx.coroutines.delay
 
 @Composable
-public fun SplashScreen(homeView: () -> Unit = {}, modifier : Modifier = Modifier) {
+fun SplashScreen(homeView: () -> Unit = {}, modifier : Modifier = Modifier) {
     var splashed by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        delay(3000)
+        delay(1000)
         splashed = true
+    }
+    LaunchedEffect(Unit) {
+        delay(7000)
+        homeView()
     }
     Box(
         modifier = modifier
@@ -53,7 +58,7 @@ public fun SplashScreen(homeView: () -> Unit = {}, modifier : Modifier = Modifie
             Text(
                 text = "Marigold",
                 style = MaterialTheme.typography.displayLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = modifier.height(2.dp))
             Text(
@@ -62,18 +67,23 @@ public fun SplashScreen(homeView: () -> Unit = {}, modifier : Modifier = Modifie
                 color = MaterialTheme.colorScheme.secondary
             )
         }
-        AnimatedVisibility(
-            visible = splashed,
-            enter = fadeIn(animationSpec = tween(2000)),
-            modifier = modifier
-                .padding(20.dp)
-                .align(Alignment.BottomCenter)
-        ) {
-            Text(
-                text = "Press anywhere to continue",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.tertiary
-            )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom,
+            modifier = modifier.fillMaxSize()
+                .padding(0.dp, 0.dp, 0.dp,70.dp)
+        )  {
+            AnimatedVisibility(
+                visible = splashed,
+                enter = fadeIn(animationSpec = tween(2000)),
+                modifier = modifier
+            ) {
+                Text(
+                    text = "Press anywhere to continue",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
         }
     }
 }
