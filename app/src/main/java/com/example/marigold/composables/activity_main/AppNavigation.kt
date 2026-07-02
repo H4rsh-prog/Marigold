@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.marigold.DashboardActivity
 
 @Composable
-public fun AppNavigation(viewIndx : Int = 0) {
+fun AppNavigation(viewIndx : Int = 0, onAuthenticate: (() -> Unit) -> Unit = { it() }) {
     var navIndx by remember { mutableStateOf(viewIndx) }
     val context = LocalContext.current;
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -27,7 +27,11 @@ public fun AppNavigation(viewIndx : Int = 0) {
             exit = fadeOut(animationSpec = tween(2000)),
             enter = fadeIn(animationSpec = tween(500))
         ) {
-            SplashScreen({ navIndx = 1 })
+            SplashScreen({
+                onAuthenticate {
+                    navIndx = 1
+                }
+            })
         }
         AnimatedVisibility(
             visible = navIndx==1,
