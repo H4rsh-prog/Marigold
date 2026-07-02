@@ -1,4 +1,4 @@
-package com.example.marigold.composables.activities
+package com.example.marigold.composables.activity_main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -63,7 +63,7 @@ fun SplashScreen(homeView: () -> Unit = {}, modifier : Modifier = Modifier) {
             Spacer(modifier = modifier.height(2.dp))
             Text(
                 text = "some people are like flowers",
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.secondary
             )
         }

@@ -1,4 +1,4 @@
-package com.example.marigold.composables.activities
+package com.example.marigold.composables.activity_main
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -66,7 +66,7 @@ fun HomeScreen(defineView: () -> Unit = {}, modifier: Modifier = Modifier) {
                     )
                     Text(
                         text = "May this marigold remind you of the gentle moments of happiness in your life. Because when you smile, you make everything around you as bright as summer vibes.",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurface,
                     )

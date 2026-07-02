@@ -7,9 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
-import com.example.marigold.composables.AppNavigation
+import com.example.marigold.composables.activity_main.AppNavigation
 import com.example.marigold.ui.theme.MarigoldTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,17 +31,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Preview(showBackground = true)
+@PreviewLightDark
 @Composable
 fun GreetingPreview() {
-    MarigoldTheme(darkTheme = false) {
-        AppNavigation()
-    }
-}
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreviewD() {
-    MarigoldTheme(darkTheme = true) {
-        AppNavigation()
+    MarigoldTheme() {
+        AppNavigation(2)
     }
 }

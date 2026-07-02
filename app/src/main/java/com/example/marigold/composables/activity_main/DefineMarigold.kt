@@ -1,4 +1,4 @@
-package com.example.marigold.composables.activities
+package com.example.marigold.composables.activity_main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -17,7 +17,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -71,6 +73,8 @@ fun DefineMarigold(authorizedView : () -> Unit = {}, modifier : Modifier = Modif
                             }
                         }
                     },
+                    colors = TextFieldDefaults.colors(focusedTextColor = MaterialTheme.colorScheme.secondary),
+                    label = { Text(text="Define Marigold", style = MaterialTheme.typography.titleSmall) },
                     modifier = modifier.fillMaxSize()
                 )
             }

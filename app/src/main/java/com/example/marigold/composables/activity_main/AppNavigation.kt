@@ -1,4 +1,4 @@
-package com.example.marigold.composables
+package com.example.marigold.composables.activity_main
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
@@ -16,13 +16,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.marigold.DashboardActivity
-import com.example.marigold.composables.activities.DefineMarigold
-import com.example.marigold.composables.activities.HomeScreen
-import com.example.marigold.composables.activities.SplashScreen
 
 @Composable
-public fun AppNavigation() {
-    var navIndx by remember { mutableStateOf(0) }
+public fun AppNavigation(viewIndx : Int = 0) {
+    var navIndx by remember { mutableStateOf(viewIndx) }
     val context = LocalContext.current;
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         AnimatedVisibility(
