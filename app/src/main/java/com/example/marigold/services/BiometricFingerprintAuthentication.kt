@@ -5,13 +5,15 @@ import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.example.marigold.MainActivity
 
 class BiometricFingerprintAuthentication : FragmentActivity() {
+    val context = MainActivity().baseContext
     fun showBiometricPrompt(onSuccess: () -> Unit) {
-        val biometricManager = BiometricManager.from(this)
+        val biometricManager = BiometricManager.from(context)
         when (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)) {
             BiometricManager.BIOMETRIC_SUCCESS -> {
-                val executor = ContextCompat.getMainExecutor(this)
+                val executor = ContextCompat.getMainExecutor(context)
                 val biometricPrompt = BiometricPrompt(this, executor,
                     object : BiometricPrompt.AuthenticationCallback() {
                         override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {

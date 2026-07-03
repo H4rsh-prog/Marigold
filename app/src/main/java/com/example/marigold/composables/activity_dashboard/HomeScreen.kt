@@ -1,4 +1,4 @@
-package com.example.marigold.composables.activity_main
+package com.example.marigold.composables.activity_dashboard
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.example.marigold.R
 
 @Composable
-fun HomeScreen(defineView: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun HomeScreen(resolveView: () -> Unit = {}, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -77,7 +77,7 @@ fun HomeScreen(defineView: () -> Unit = {}, modifier: Modifier = Modifier) {
         Spacer(modifier = modifier.height(32.dp))
 
         Button(
-            onClick = {defineView()},
+            onClick = {resolveView()},
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("What is Marigold to you?", color = Color.White)
