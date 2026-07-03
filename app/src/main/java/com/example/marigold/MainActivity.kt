@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import com.example.marigold.composables.activity_main.AppNavigation
-import com.example.marigold.services.BiometricFingerprintAuthentication
 import com.example.marigold.ui.theme.MarigoldTheme
 
 class MainActivity : ComponentActivity() {
@@ -27,8 +26,9 @@ class MainActivity : ComponentActivity() {
                         fontScale = fontScale
                     )
                 ) {
-                    AppNavigation(onAuthenticate = BiometricFingerprintAuthentication()::showBiometricPrompt)
-
+                    AppNavigation(
+//                        onAuthenticate = BiometricFingerprintAuthentication()::showBiometricPrompt,
+                    )
                 }
             }
         }

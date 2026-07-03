@@ -30,7 +30,7 @@ import com.example.marigold.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(homeView: () -> Unit = {}, modifier : Modifier = Modifier) {
+fun SplashScreen(resolveView: () -> Unit = {}, modifier : Modifier = Modifier) {
     var splashed by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         delay(1000)
@@ -38,13 +38,13 @@ fun SplashScreen(homeView: () -> Unit = {}, modifier : Modifier = Modifier) {
     }
     LaunchedEffect(Unit) {
         delay(7000)
-        homeView()
+        resolveView()
     }
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .clickable(enabled = true, onClick = {homeView()}),
+            .clickable(enabled = true, onClick = {resolveView()}),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
