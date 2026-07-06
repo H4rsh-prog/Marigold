@@ -1,6 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+}
+
+val env = Properties().apply {
+    val envFile = rootProject.file(".env")
+    if (envFile.exists()) {
+        envFile.inputStream().use { load(it) }
+    } else {
+        // Fallback or debug message
+        println("Warning: .env file not found at ${envFile.absolutePath}")
+    }
 }
 
 android {
@@ -15,14 +28,16 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "MY_TEST_ENV", "\"${env.getProperty("keystore.password")}\"");
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("${System.getProperty("user.home")}/.android/marigold-keystore.jks")
-            storePassword = "lamare_della_mi_vita"
-            keyAlias = "marigold_key"
-            keyPassword = "lamare_della_mi_vita"
+            val relPath = env.getProperty("keystore.dir_rel")
+            storeFile = file("${System.getProperty("user.home")}$relPath")
+            storePassword = env.getProperty("keystore.password")
+            keyAlias = env.getProperty("keystore.key.alias")
+            keyPassword = env.getProperty("keystore.key.password")
             enableV1Signing = true
             enableV2Signing = true
             enableV3Signing = true
@@ -44,6 +59,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -68,4 +84,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling)
     implementation(libs.androidx.biometric)
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }

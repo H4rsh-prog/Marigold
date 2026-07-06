@@ -49,7 +49,7 @@ fun DefineMarigold(
 ){
     var visible_main by remember { mutableStateOf(false) }
     var input by remember { mutableStateOf("") }
-    val DEFINE_MARGIOLD by remember { mutableStateOf(dataHandler.getData(dataHandler.DEFINE_MARGIOLD)) };
+    val DEFINE_MARIGOLD by remember { mutableStateOf(dataHandler.getPreference(dataHandler.DEFINE_MARIGOLD)) }
     LaunchedEffect(Unit) {
         delay(500)
         visible_main = true;
@@ -84,7 +84,7 @@ fun DefineMarigold(
                         onValueChange = { text ->
                             run {
                                 input = text;
-                                if (input.equals(DEFINE_MARGIOLD)) {
+                                if (input.equals(DEFINE_MARIGOLD)) {
                                     resolveView()
                                 }
                             }
@@ -137,7 +137,7 @@ fun DefineMarigold(
                 Spacer(modifier=modifier.height(20.dp))
                 Button(onClick = {
                     if(input.isNotBlank()) {
-                        dataHandler.saveData(dataHandler.DEFINE_MARGIOLD, input);
+                        dataHandler.savePreference(dataHandler.DEFINE_MARIGOLD, input);
                         visible_main = false
                         resolveView();
                     }

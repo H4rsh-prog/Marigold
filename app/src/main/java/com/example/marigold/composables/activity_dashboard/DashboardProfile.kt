@@ -5,9 +5,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,15 +21,25 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.room.Room
+import com.example.marigold.model.Note.Note
+import com.example.marigold.model.Note.NoteDB
+import kotlinx.coroutines.launch
 
 @Composable
 fun DashboardProfile(modifier: Modifier = Modifier) {
@@ -85,9 +97,108 @@ enum class ProfileTabs(
     val label: String,
     val content: @Composable (revertProfile: () -> Unit) -> Unit
 ) {
-    PHRASES("Phrases", {
-        Button(onClick = it) {
-            Text("RETURN");
+    PHRASES("Notes", {
+        val context = LocalContext.current
+        val db = remember {
+            Room.databaseBuilder(
+                context,
+                NoteDB::class.java,
+                "tbl_notes"
+            ).build()
+        }
+        val dao = remember { db.roomDAO() }
+        val scope = rememberCoroutineScope()
+        var notes by remember { mutableStateOf(null as List<Note>?) }
+
+        LaunchedEffect(Unit) {
+            notes = dao.getAllNotes();
+        }
+
+        LazyColumn(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top,
+            contentPadding = PaddingValues(30.dp)
+        ) {
+            item {
+                Card(
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        topEnd = 4.dp,
+                        bottomStart = 4.dp,
+                        bottomEnd = 24.dp
+                    ),
+                    modifier = Modifier.padding(0.dp, 10.dp)
+                        .fillMaxWidth(),
+                ) {
+                    Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                        var title by remember { mutableStateOf("") }
+                        var contentText by remember { mutableStateOf("") }
+                        TextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.weight(.5f).border(2.dp, MaterialTheme.colorScheme.primary))
+                        TextField(value = contentText, onValueChange = { contentText = it }, label = { Text("Content") }, modifier = Modifier.weight(1f).border(2.dp, MaterialTheme.colorScheme.primary))
+                        Button(
+                            onClick = {
+                                if (title.isNotBlank() || contentText.isNotBlank()) {
+                                    scope.launch {
+                                        dao.upsertNote(Note(title = title, content = contentText))
+                                        notes = dao.getAllNotes()
+                                        title = ""
+                                        contentText = ""
+                                    }
+                                }
+                            },
+                            modifier = Modifier.scale(0.6f)
+                        ) {
+                            Text(text = "Add Note",
+                                style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            if(!notes.isNullOrEmpty()) {
+                item{
+                    Text("NOTES", style = MaterialTheme.typography.headlineSmall, textDecoration = TextDecoration.Underline, modifier = Modifier.padding(vertical = 8.dp));
+                    Spacer(modifier = Modifier.padding(10.dp))
+                }
+                items(notes!!) { note ->
+                    Card(
+                        shape = RoundedCornerShape(
+                            topStart = 24.dp,
+                            topEnd = 4.dp,
+                            bottomStart = 4.dp,
+                            bottomEnd = 24.dp
+                        ),
+                        modifier = Modifier
+                            .padding(0.dp, 10.dp)
+                            .fillMaxWidth()
+                            .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(
+                                topStart = 24.dp,
+                                topEnd = 4.dp,
+                                bottomStart = 4.dp,
+                                bottomEnd = 24.dp
+                            )),
+                    ) {
+                        Column(modifier = Modifier.padding(18.dp)) {
+                            Text(
+                                text = note.title,
+                                style = MaterialTheme.typography.titleLarge,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = note.content,
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                            )
+                        }
+                    }
+                }
+            }
         }
     }),
     CALENDAR("Calender", {
