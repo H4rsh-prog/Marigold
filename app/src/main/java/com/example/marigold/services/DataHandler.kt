@@ -5,25 +5,37 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
 class DataHandler(context: Context) {
-    val DEFINE_MARGIOLD = "DEFINE_MARGIOLD";
-    val masterKey = MasterKey.Builder(context).setKeyScheme(MasterKey.KeyScheme.AES256_GCM).build();
-    private val sharedPreferences = EncryptedSharedPreferences.create(
+    val DEFINE_MARIGOLD = "DEFINE_MARIGOLD"
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+    internal val sharedPreferences = EncryptedSharedPreferences.create(
         context,
         "secret_shared_prefs",
         masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-    );
-    fun saveData(key: String, value: String) {
-        sharedPreferences.edit().putString(key, value).apply();
-    };
-    fun getData(key: String): String? {
-        return sharedPreferences.getString(key, null);
-    };
-    fun removeData(key: String) {
-        sharedPreferences.edit().remove(key).apply();
+    )
+    fun savePreference(key: String, value: String) {
+        sharedPreferences.edit().putString(key, value).apply()
     }
-    fun isAppInitialized() : Boolean {
-        return sharedPreferences.contains(DEFINE_MARGIOLD);
-    };
+    fun getPreference(key: String): String? {
+        return try {
+            sharedPreferences.getString(key, null)
+        } catch (e: Exception) {
+            sharedPreferences.edit().clear().apply()
+            null
+        }
+    }
+    fun removePreference(key: String) {
+        sharedPreferences.edit().remove(key).apply()
+    }
+    fun isAppInitialized(): Boolean {
+        return try {
+            sharedPreferences.contains(DEFINE_MARIGOLD)
+        } catch (e: Exception) {
+            sharedPreferences.edit().clear().apply()
+            false
+        }
+    }
 }

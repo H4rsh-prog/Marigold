@@ -38,7 +38,7 @@ fun SplashScreen(resolveView: () -> Unit = {}, modifier : Modifier = Modifier) {
     }
     LaunchedEffect(Unit) {
         delay(7000)
-        resolveView()
+//        resolveView()
     }
     Box(
         modifier = modifier
