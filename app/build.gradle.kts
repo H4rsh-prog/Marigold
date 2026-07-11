@@ -30,7 +30,11 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "MY_TEST_ENV", "\"${env.getProperty("keystore.password")}\"");
     }
-
+}
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+android {
     signingConfigs {
         create("release") {
             val relPath = env.getProperty("keystore.dir_rel")
@@ -87,5 +91,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation("io.coil-kt:coil-compose:2.7.0")
     ksp(libs.androidx.room.compiler)
 }

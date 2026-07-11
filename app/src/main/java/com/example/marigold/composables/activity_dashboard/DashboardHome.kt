@@ -13,7 +13,7 @@ fun DashboardHome(modifier: Modifier = Modifier) {
     val context = LocalContext.current;
     val dataHandler = DataHandler(context)
     HomeScreen(resolveView = {
-        dataHandler.removePreference(dataHandler.DEFINE_MARIGOLD);
+        dataHandler.removePreference(dataHandler.DEFINE_MARIGOLD)
         Toast.makeText(context, "You get to redefine your marigold", Toast.LENGTH_SHORT).show();
         context.startActivity(Intent(context, MainActivity::class.java));
     })
