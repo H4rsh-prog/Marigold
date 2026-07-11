@@ -37,7 +37,6 @@ fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modif
         delay(500)
         launchTimer = true
     }
-
     NavigationSuiteScaffold(
         {
             AppDestinations.entries.forEach {
