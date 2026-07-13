@@ -1,15 +1,15 @@
-package com.example.marigold.composables.activity_main
+package com.example.marigold.composables.PreAuthComposables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,18 +36,16 @@ fun SplashScreen(resolveView: () -> Unit = {}, modifier : Modifier = Modifier) {
         delay(1000)
         splashed = true
     }
-    LaunchedEffect(Unit) {
-        delay(7000)
-//        resolveView()
-    }
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .clickable(enabled = true, onClick = {resolveView()}),
-        contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = modifier.fillMaxWidth().padding(0.dp, 100.dp, 0.dp, 0.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceAround,
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_launcher_foreground),
                 contentDescription = "Marigold Logo",
