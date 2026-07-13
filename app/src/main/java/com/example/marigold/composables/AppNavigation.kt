@@ -1,7 +1,10 @@
-package com.example.marigold.composables.activity_main
+@file:OptIn(ExperimentalAnimationApi::class)
+
+package com.example.marigold.composables
 
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,6 +20,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.marigold.DashboardActivity
+import com.example.marigold.composables.activity_main.DefineMarigold
+import com.example.marigold.composables.activity_main.SplashScreen
 import com.example.marigold.services.DataHandler
 import kotlinx.coroutines.delay
 
@@ -64,8 +69,10 @@ fun AppNavigation(
             exit = fadeOut(animationSpec = tween(500))
         ) {
             LaunchedEffect(Unit) {
-                delay(1000)
+                delay(400)
                 context.startActivity(Intent(context, DashboardActivity::class.java));
+                delay(1000)
+                navIndx = 0;
             }
         }
     }

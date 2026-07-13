@@ -9,7 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
-import com.example.marigold.composables.activity_main.AppNavigation
+import com.example.marigold.composables.AppNavigation
 import com.example.marigold.ui.theme.MarigoldTheme
 
 class MainActivity : ComponentActivity() {
