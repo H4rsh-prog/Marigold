@@ -61,6 +61,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.marigold.R
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Media
+import com.example.marigold.model.Media.MediaDAO
 import com.example.marigold.model.Note.Note
 import com.example.marigold.model.Note.NoteDAO
 import com.example.marigold.ui.component.shapes.cornerPinchedRoundedShape
@@ -80,7 +81,7 @@ enum class ProfileTabs(
             Room.databaseBuilder(
                 context,
                 DB::class.java,
-                "tbl_notes"
+                "marigold_db"
             ).build()
         }
         val dao = remember { db.noteDAO() }
@@ -276,14 +277,14 @@ enum class ProfileTabs(
             Room.databaseBuilder(
                 context = context,
                 klass = DB::class.java,
-                name = "tbl_media"
+                name = "marigold_db"
             ).build()
         }
         val dao = remember { db.mediaDAO() }
         val scope = rememberCoroutineScope()
         var mediaItems by remember { mutableStateOf(null as List<Media>?) }
         LaunchedEffect(Unit) {
-            mediaItems = dao.getAllMedia()
+            mediaItems = refreshMedia(dao)
         }
         val mediaPicker = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -297,33 +298,50 @@ enum class ProfileTabs(
                         )
                         dao.upsertMedia(Media(uri = uri.toString()))
                     }
-                    mediaItems = dao.getAllMedia()
+                    mediaItems = refreshMedia(dao);
                 }
             }
         }
-        var previewUri by remember { mutableStateOf(null as String?) }
+        var previewMedia by remember { mutableStateOf(null as Media?) }
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(30.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Button(onClick = revertProfile) {
                 Text("RETURN")
             }
+            Spacer(Modifier.height(40.dp))
             AnimatedVisibility(
-                visible = !previewUri.isNullOrEmpty(),
+                visible = previewMedia != null,
                 enter = fadeIn(animationSpec = tween(1000)),
                 exit = fadeOut(animationSpec = tween(1000)),
             ) {
-                Image(
-                    painter = rememberAsyncImagePainter(previewUri?.toUri()),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize()
-                        .clickable(enabled = true, onClick = { previewUri = null }),
-                )
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(previewMedia?.uri?.toUri()),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize()
+                            .clickable(enabled = true, onClick = { previewMedia = null }),
+                    )
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                dao.deleteMediaById(previewMedia!!.id)
+                                mediaItems = refreshMedia(dao)
+                                previewMedia = null
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                    ) {
+                        Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = "Delete")
+                    }
+                }
             }
             AnimatedVisibility(
-                visible = previewUri.isNullOrEmpty(),
+                visible = previewMedia == null,
                 enter = fadeIn(animationSpec = tween(1000)),
                 exit = fadeOut(animationSpec = tween(1000)),
             ) {
@@ -337,15 +355,15 @@ enum class ProfileTabs(
                     if (!mediaItems.isNullOrEmpty()) {
                         items(mediaItems!!) { media ->
                             AnimatedVisibility(
-                                visible = previewUri.isNullOrEmpty(),
-                                enter = fadeIn(animationSpec = tween(1000)),
+                                visible = previewMedia == null,
+                                enter = fadeIn(animationSpec = tween(1000 + (mediaItems!!.indexOf(media).times(500)))),
                                 exit = fadeOut(animationSpec = tween(1000)),
                             ) {
                                 Card(
                                     modifier = Modifier
                                         .padding(4.dp)
                                         .height(80.dp)
-                                        .clickable(enabled = true, onClick = { previewUri = media.uri }),
+                                        .clickable(enabled = true, onClick = { previewMedia = media }),
                                     shape = RoundedCornerShape(8.dp)
                                 ) {
                                     Image(
@@ -359,7 +377,7 @@ enum class ProfileTabs(
                         }
                     }
                 }
-                Box(modifier = Modifier.fillMaxSize(),contentAlignment = Alignment.BottomEnd) {
+                Box(modifier = Modifier.fillMaxSize().padding(10.dp) ,contentAlignment = Alignment.BottomEnd) {
                     Button(onClick = {
                         mediaPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                     }) {
@@ -376,6 +394,9 @@ enum class ProfileTabs(
     });
 }
 
-suspend fun refreshNotes(dao: NoteDAO): List<Note>?{
-    return dao.getAllNotes().sortedByDescending { note-> note.date }
+suspend fun refreshNotes(dao: NoteDAO): List<Note>{
+    return dao.getAllNotes().sortedByDescending { note -> note.date }
+}
+suspend fun refreshMedia(dao: MediaDAO): List<Media>{
+    return dao.getAllMedia().sortedByDescending { media -> media.date }
 }
