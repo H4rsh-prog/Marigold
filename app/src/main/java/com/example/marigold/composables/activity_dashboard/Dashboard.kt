@@ -69,7 +69,7 @@ fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modif
         ) {
             AnimatedVisibility(
                 visible = launchTimer,
-                enter = fadeIn(animationSpec = tween(500)),
+                enter = fadeIn(animationSpec = tween(500, 500)),
                 exit = fadeOut(animationSpec = tween(500))
             ) {
                 currentDestination.content()
