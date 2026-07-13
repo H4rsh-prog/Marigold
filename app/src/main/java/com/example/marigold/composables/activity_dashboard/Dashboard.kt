@@ -27,10 +27,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.marigold.R
+import com.example.marigold.composables.NavigationIndx
 import kotlinx.coroutines.delay
 
 @Composable
-fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modifier : Modifier = Modifier) {
+fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modifier : Modifier = Modifier, overrideNavigationIndx : (NavigationIndx) -> Unit) {
     var currentDestination by rememberSaveable { mutableStateOf(overrideDestination) }
     var launchTimer by remember {mutableStateOf(false)}
     LaunchedEffect(Unit) {
@@ -82,6 +83,6 @@ enum class AppDestinations(
     val icon: Int,
     val content: @Composable () -> Unit
 ) {
-    HOME("Home", R.drawable.ic_home, { DashboardHome() }),
+    HOME("Home", R.drawable.ic_home, { DashboardHome()}),
     PROFILE("Profile", R.drawable.ic_account_box, { DashboardProfile() })
 }
