@@ -1,4 +1,4 @@
-package com.example.marigold.composables.activity_dashboard
+package com.example.marigold.composables.DashboardComposables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -27,10 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.marigold.composables.NavigationIndx
 
 @Composable
-fun DashboardProfile(modifier: Modifier = Modifier, profileOverride: ProfileTabs? = null) {
-    var profile by remember { mutableStateOf(profileOverride as ProfileTabs?) }
+fun DashboardProfile(modifier: Modifier = Modifier, overrideProfile: ProfileTabs? = null, overrideNavigationIndx : (NavigationIndx) -> Unit) {
+    var profile by remember { mutableStateOf(overrideProfile as ProfileTabs?) }
     AnimatedVisibility(
         visible = profile == null,
         enter = fadeIn(animationSpec = tween(1800)),

@@ -1,4 +1,4 @@
-package com.example.marigold.composables.activity_dashboard
+package com.example.marigold.composables.DashboardComposables
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
