@@ -1,4 +1,4 @@
-package com.example.marigold.composables.activity_dashboard
+package com.example.marigold.composables.DashboardComposables
 
 import android.content.Intent
 import android.os.Build

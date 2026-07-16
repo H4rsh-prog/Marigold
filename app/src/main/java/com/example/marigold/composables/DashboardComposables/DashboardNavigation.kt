@@ -1,9 +1,10 @@
-package com.example.marigold.composables.activity_dashboard
+package com.example.marigold.composables.DashboardComposables
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -17,7 +18,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,7 +32,11 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modifier : Modifier = Modifier, overrideNavigationIndx : (NavigationIndx) -> Unit) {
-    var currentDestination by rememberSaveable { mutableStateOf(overrideDestination) }
+    var currentDestination by remember { mutableStateOf(AppDestinations.entries.indexOf(overrideDestination)) }
+    var previousDestination by remember { mutableStateOf(AppDestinations.entries.indexOf(overrideDestination)) }
+    var initializedAppDestinations by remember {
+        mutableStateOf<List<@Composable (overrideNavigationIndx : (NavigationIndx) -> Unit) -> Unit>>(AppDestinations.entries.map { it.content })
+    }
     var launchTimer by remember {mutableStateOf(false)}
     LaunchedEffect(Unit) {
         delay(500)
@@ -40,7 +44,7 @@ fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modif
     }
     NavigationSuiteScaffold(
         {
-            AppDestinations.entries.forEach {
+            AppDestinations.entries.forEachIndexed { index, it ->
                 item(
                     icon = {
                         Icon(
@@ -49,11 +53,11 @@ fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modif
                             modifier = modifier
                                 .scale(1.2f)
                                 .padding(7.dp),
-                            tint = if (it == currentDestination) MaterialTheme.colorScheme.tertiary else Color.Unspecified
+                            tint = if (index == currentDestination) MaterialTheme.colorScheme.tertiary else Color.Unspecified
                         )
                     },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it },
+                    selected = index == currentDestination,
+                    onClick = { previousDestination = currentDestination; currentDestination = index; },
                     modifier = modifier.alpha(0.6f)
                 )
             }
@@ -67,12 +71,28 @@ fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modif
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier.fillMaxSize()
         ) {
-            AnimatedVisibility(
-                visible = launchTimer,
-                enter = fadeIn(animationSpec = tween(500)),
-                exit = fadeOut(animationSpec = tween(500))
+            AnimatedContent(
+                targetState = currentDestination,
+                modifier = Modifier.fillMaxSize(),
+                transitionSpec = {
+                    val animationDuration = 800
+                    ContentTransform(
+                        targetContentEnter =
+                            if(currentDestination>previousDestination){
+                                slideInHorizontally(tween(animationDuration)) {it}
+                            } else {
+                                slideInHorizontally(tween(animationDuration)) {-it}
+                            },
+                        initialContentExit =
+                            if(currentDestination>previousDestination){
+                                slideOutHorizontally(tween(animationDuration)) {-it}
+                            } else {
+                                slideOutHorizontally(tween(animationDuration)) {it}
+                            }
+                    )
+                }
             ) {
-                currentDestination.content()
+                initializedAppDestinations.get(it).invoke(overrideNavigationIndx)
             }
         }
     }
@@ -81,8 +101,8 @@ fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modif
 enum class AppDestinations(
     val label: String,
     val icon: Int,
-    val content: @Composable () -> Unit
+    val content: @Composable (overrideNavigationIndx : (NavigationIndx) -> Unit) -> Unit
 ) {
-    HOME("Home", R.drawable.ic_home, { DashboardHome()}),
-    PROFILE("Profile", R.drawable.ic_account_box, { DashboardProfile() })
+    HOME("Home", R.drawable.ic_home, { DashboardHome(overrideNavigationIndx = it) }),
+    PROFILE("Profile", R.drawable.ic_account_box, { DashboardProfile(overrideNavigationIndx = it) })
 }
