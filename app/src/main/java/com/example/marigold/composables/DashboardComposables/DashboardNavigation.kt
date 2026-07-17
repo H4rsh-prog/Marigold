@@ -101,8 +101,8 @@ fun Dashboard(overrideDestination: AppDestinations = AppDestinations.HOME, modif
 enum class AppDestinations(
     val label: String,
     val icon: Int,
-    val content: @Composable (overrideNavigationIndx : (NavigationIndx) -> Unit) -> Unit
+    val content: @Composable (overrideNavigationIndx : (NavigationIndx) -> Unit) -> Unit,
 ) {
-    HOME("Home", R.drawable.ic_home, { DashboardHome(overrideNavigationIndx = it) }),
-    PROFILE("Profile", R.drawable.ic_account_box, { DashboardProfile(overrideNavigationIndx = it) })
+    HOME("Home", R.drawable.ic_home, { HomeScreen({ it.invoke(NavigationIndx.NAV_SCREEN) }) }),
+    PROFILE("Profile", R.drawable.ic_account_box, { ProfileScreen(overrideNavigationIndx = it) })
 }
