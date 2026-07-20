@@ -17,7 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.example.marigold.composables.DashboardComposables.Dashboard
+import com.example.marigold.composables.DashboardComposables.HomeScreen
 import com.example.marigold.composables.PreAuthComposables.DefineMarigold
 import com.example.marigold.composables.PreAuthComposables.SplashScreen
 import com.example.marigold.services.DataHandler
@@ -34,6 +34,7 @@ fun AppNavigation(
     dataHandler: DataHandler = DataHandler(LocalContext.current)
 ) {
     var navIndx by remember { mutableStateOf(viewIndx) }
+    var prevNavIndx by remember {mutableStateOf(viewIndx)}
     val overrideNavigationIndx : (NavigationIndx) -> Unit = { destination -> navIndx = destination.index }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -45,26 +46,21 @@ fun AppNavigation(
                 val animationDuration = 800
                 ContentTransform(
                     targetContentEnter =
-                        when(targetState){
-                            NavigationIndx.NAV_SCREEN.index -> {
-                                slideInVertically(animationSpec = tween(animationDuration)) { it*2 }
-                            }
-                            else -> {
-                                scaleIn(animationSpec = tween(animationDuration))
-                            }
+                        if(targetState>prevNavIndx) {
+                            slideInVertically(animationSpec = tween(animationDuration)) { it * 2 }
+                        } else {
+                            scaleIn(animationSpec = tween(animationDuration))
                         },
                     initialContentExit =
-                        when(targetState) {
-                            NavigationIndx.AUTH_SCREEN.index -> {
-                                scaleOut(tween(animationDuration), targetScale = 2.5F)
-                            }
-                            else -> {
-                                slideOutVertically(tween(animationDuration)) { it*2 }
-                            }
+                        if(targetState>prevNavIndx) {
+                            scaleOut(tween(animationDuration), targetScale = 2.5F)
+                        } else {
+                            slideOutVertically(tween(animationDuration)) { it*2 }
                         }
                 )
             }
         ) {
+            prevNavIndx = it
             when (it) {
                 -1 ->
                     SplashScreen(
@@ -76,7 +72,7 @@ fun AppNavigation(
                         isInitialized = dataHandler.isAppInitialized()
                     )
                 1 ->
-                    Dashboard(overrideNavigationIndx = overrideNavigationIndx)
+                    HomeScreen(overrideNavigationIndx = overrideNavigationIndx)
             }
         }
     }
