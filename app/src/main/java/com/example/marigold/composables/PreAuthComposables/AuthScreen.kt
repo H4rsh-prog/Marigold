@@ -137,7 +137,7 @@ fun DefineMarigold(
                         scope.launch {
                             focus.clearFocus(true)
                             delay(500)
-                            resolveView();
+                            resolveView()
                             delay(500)
                             dataHandler.savePreference(dataHandler.DEFINE_MARIGOLD, input);
                         }

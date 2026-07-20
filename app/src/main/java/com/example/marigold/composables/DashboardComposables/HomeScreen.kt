@@ -1,5 +1,6 @@
 package com.example.marigold.composables.DashboardComposables
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
@@ -48,9 +49,15 @@ import kotlinx.coroutines.launch
 
 data object profile
 
+@SuppressLint("RememberReturnType")
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (NavigationIndx) -> Unit){
+fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (NavigationIndx) -> Unit, overrideProfileTabs: ProfileTabs? = null){
     val backStack = remember { mutableStateListOf<Any>(profile) }
+    remember {
+        if(overrideProfileTabs!=null) {
+            backStack.add(overrideProfileTabs)
+        }
+    }
     val scope = rememberCoroutineScope();
     NavDisplay(
         backStack = backStack,
@@ -189,7 +196,7 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                     }
                 }
                 is ProfileTabs -> NavEntry(key) {
-                    key.content.invoke({})
+                    key.content.invoke({backStack.removeLastOrNull()}, backStack)
                 }
                 else -> NavEntry(Unit) { Text("Unknown route") }
             }

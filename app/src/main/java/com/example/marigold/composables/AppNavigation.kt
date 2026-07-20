@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.example.marigold.composables.DashboardComposables.HomeScreen
+import com.example.marigold.composables.DashboardComposables.ProfileTabs
 import com.example.marigold.composables.PreAuthComposables.DefineMarigold
 import com.example.marigold.composables.PreAuthComposables.SplashScreen
 import com.example.marigold.services.DataHandler
@@ -29,12 +30,13 @@ enum class NavigationIndx (val index : Int){
 }
 @Composable
 fun AppNavigation(
-    viewIndx : Int = NavigationIndx.SPLASH_SCREEN.index,
+    overrideNavIndx: Int = NavigationIndx.SPLASH_SCREEN.index,
+    overrideProfileTabs: ProfileTabs? = null,
     onAuthenticate: (() -> Unit) -> Unit = { it() },
     dataHandler: DataHandler = DataHandler(LocalContext.current)
 ) {
-    var navIndx by remember { mutableStateOf(viewIndx) }
-    var prevNavIndx by remember {mutableStateOf(viewIndx)}
+    var navIndx by remember { mutableStateOf(overrideNavIndx) }
+    var prevNavIndx by remember {mutableStateOf(overrideNavIndx)}
     val overrideNavigationIndx : (NavigationIndx) -> Unit = { destination -> navIndx = destination.index }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -72,7 +74,10 @@ fun AppNavigation(
                         isInitialized = dataHandler.isAppInitialized()
                     )
                 1 ->
-                    HomeScreen(overrideNavigationIndx = overrideNavigationIndx)
+                    HomeScreen(
+                        overrideNavigationIndx = overrideNavigationIndx,
+                        overrideProfileTabs = overrideProfileTabs
+                    )
             }
         }
     }
