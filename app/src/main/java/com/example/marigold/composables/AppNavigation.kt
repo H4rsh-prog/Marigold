@@ -7,6 +7,8 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -16,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import com.example.marigold.composables.DashboardComposables.HomeScreen
 import com.example.marigold.composables.DashboardComposables.ProfileTabs
@@ -55,7 +58,7 @@ fun AppNavigation(
                         },
                     initialContentExit =
                         if(targetState>prevNavIndx) {
-                            scaleOut(tween(animationDuration), targetScale = 2.5F)
+                            scaleOut(tween(animationDuration), targetScale = 2.5F, )
                         } else {
                             slideOutVertically(tween(animationDuration)) { it*2 }
                         }
@@ -74,10 +77,12 @@ fun AppNavigation(
                         isInitialized = dataHandler.isAppInitialized()
                     )
                 1 ->
-                    HomeScreen(
-                        overrideNavigationIndx = overrideNavigationIndx,
-                        overrideProfileTabs = overrideProfileTabs
-                    )
+                    Box(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary)), alpha = 0.6f)){
+                        HomeScreen(
+                            overrideNavigationIndx = overrideNavigationIndx,
+                            overrideProfileTabs = overrideProfileTabs
+                        )
+                    }
             }
         }
     }

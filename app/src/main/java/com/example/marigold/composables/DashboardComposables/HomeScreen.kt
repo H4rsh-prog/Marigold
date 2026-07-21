@@ -6,9 +6,7 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -48,6 +46,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 data object profile
+data object splash
 
 @SuppressLint("RememberReturnType")
 @Composable
@@ -57,16 +56,17 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
         if(overrideProfileTabs!=null) {
             backStack.add(overrideProfileTabs)
         }
+        backStack.add(0,splash)
     }
     val scope = rememberCoroutineScope();
     NavDisplay(
         backStack = backStack,
-        onBack = { backStack.removeLastOrNull(); if(backStack.isNullOrEmpty()) {overrideNavigationIndx(NavigationIndx.SPLASH_SCREEN)} },
+        onBack = { backStack.removeLastOrNull() },
         transitionSpec = {
             val animationDuration = 800
             ContentTransform(
-                targetContentEnter = slideInHorizontally(tween(animationDuration)) { it },
-                initialContentExit = slideOutHorizontally(tween(animationDuration)) { -it }
+                targetContentEnter = fadeIn(tween(animationDuration)),
+                initialContentExit = fadeOut(tween(animationDuration))
             )
         },
         entryProvider = { key ->
@@ -88,9 +88,7 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                         }
                         Box(
                             modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.secondary).padding(40.dp)
-                                .border(2.dp, MaterialTheme.colorScheme.primary),
+                                .fillMaxSize(),
                             contentAlignment = Alignment.TopCenter
                         ) {
                             AnimatedVisibility(
@@ -99,6 +97,7 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                                 exit = slideOutVertically(animationSpec = tween(1000)){-it}
                             ) {
                                 Column (modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Spacer(Modifier.height(20.dp))
                                     Icon(painter = painterResource(R.drawable.lamare_della_mi_vita_trasparent), contentDescription = null)
                                     Text(text = "Welcome Marigold", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium, modifier = modifier.fillMaxSize())
                                 }
@@ -121,12 +120,12 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                                             .fillParentMaxWidth(0.7f)
                                             .height(40.dp)
                                             .background(MaterialTheme.colorScheme.background, RoundedCornerShape(50.dp,50.dp,0.dp,0.dp))
-                                            .padding(20.dp,20.dp,20.dp,0.dp)
+                                            .padding(10.dp,10.dp,10.dp,0.dp)
                                     ) {
                                         Box(modifier = modifier
                                             .fillMaxSize()
-                                            .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(50.dp,50.dp,10.dp,10.dp))
                                             .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50.dp,50.dp,10.dp,10.dp))
+                                            .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(50.dp,50.dp,10.dp,10.dp))
                                         )
                                     }
                                 }
@@ -142,13 +141,13 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                                             modifier
                                                 .fillMaxSize()
                                                 .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(50.dp,50.dp))
-                                                .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(50.dp,50.dp))
                                                 .padding(10.dp,10.dp,10.dp,0.dp)
                                         ) {
                                             Column(
                                                 modifier
                                                     .fillMaxSize()
                                                     .background(MaterialTheme.colorScheme.background, RoundedCornerShape(50.dp,50.dp))
+                                                    .border(2.dp,MaterialTheme.colorScheme.primary, RoundedCornerShape(50.dp,50.dp))
                                                     .padding(40.dp)
                                             ) {
                                                 Spacer(modifier.height(20.dp))
@@ -165,7 +164,7 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                                                         ),
                                                         border = BorderStroke(
                                                             1.5.dp,
-                                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                                            MaterialTheme.colorScheme.primary
                                                         ),
                                                         modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background).padding(20.dp),
                                                         onClick = {
@@ -197,6 +196,9 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                 }
                 is ProfileTabs -> NavEntry(key) {
                     key.content.invoke({backStack.removeLastOrNull()}, backStack)
+                }
+                is splash -> NavEntry(key) {
+                    overrideNavigationIndx(NavigationIndx.SPLASH_SCREEN)
                 }
                 else -> NavEntry(Unit) { Text("Unknown route") }
             }

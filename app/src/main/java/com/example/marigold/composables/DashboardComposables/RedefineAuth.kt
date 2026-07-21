@@ -37,12 +37,11 @@ import com.example.marigold.R
 fun RedefineAuth(resolveView: () -> Unit = {}, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) {
         Column(modifier.wrapContentSize().background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(30.dp)).padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
-            Column(modifier.wrapContentSize().background(MaterialTheme.colorScheme.background, RoundedCornerShape(30.dp)).padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
+            Column(modifier.wrapContentSize().border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(30.dp)).background(MaterialTheme.colorScheme.background, RoundedCornerShape(30.dp)).padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center){
                 Column(
                     modifier = modifier
                         .wrapContentSize()
                         .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(30.dp))
-                        .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(30.dp))
                         .padding(24.dp)
                         .verticalScroll(state = rememberScrollState(), enabled = true),
                     horizontalAlignment = Alignment.CenterHorizontally,

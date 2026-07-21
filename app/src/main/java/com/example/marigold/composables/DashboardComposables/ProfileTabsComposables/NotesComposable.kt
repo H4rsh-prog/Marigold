@@ -3,27 +3,35 @@ package com.example.marigold.composables.DashboardComposables.ProfileTabsComposa
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -34,20 +42,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
+import com.example.marigold.R
 import com.example.marigold.composables.DashboardComposables.refreshNotes
 import com.example.marigold.model.DB
 import com.example.marigold.model.Note.Note
 import com.example.marigold.ui.component.shapes.cornerPinchedRoundedShape
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
 import kotlin.time.Duration.Companion.milliseconds
@@ -55,7 +67,7 @@ import kotlin.time.DurationUnit
 
 @Composable
 @RequiresApi(Build.VERSION_CODES.O)
-fun NotesComposable(revertProfile: () -> Unit, backStack: List<Any>) {
+fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>) {
     val context = LocalContext.current
     val db = remember {
         Room.databaseBuilder(
@@ -67,187 +79,419 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: List<Any>) {
     val dao = remember { db.noteDAO() }
     val scope = rememberCoroutineScope()
     var notes by remember { mutableStateOf(null as List<Note>?) }
+    var newNote by remember { mutableStateOf(false) }
     var selectedNoteId by remember { mutableStateOf(null as String?) }
+    var loaded by remember { mutableStateOf(false) }
+    var fell by remember { mutableStateOf(false) }
+    var deletingNoteId by remember { mutableStateOf(null as String?) }
     LaunchedEffect(Unit) {
+        delay(500)
+        fell = true
         notes = refreshNotes(dao)
+        delay(1000)
+        loaded = true
     }
-    Card (modifier = Modifier
-        .border(2.dp, MaterialTheme.colorScheme.primary)
-        .scale(0.85f)
-        .border(2.dp, MaterialTheme.colorScheme.primary, cornerPinchedRoundedShape), shape = cornerPinchedRoundedShape) {
-        Row(horizontalArrangement = Arrangement.End){
-            Spacer(Modifier.weight(0.7f))
-            Button(
-                onClick = revertProfile,
-                modifier = Modifier
-                    .weight(0.3f)
-                    .scale(0.8f)
-            ) {
-                Text("RETURN")
-            }
-        }
-        Box(modifier = Modifier.padding(18.dp)) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                var title by remember { mutableStateOf("") }
-                var contentText by remember { mutableStateOf("") }
-                TextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") },
-                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary)
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                TextField(
-                    value = contentText,
-                    onValueChange = { contentText = it },
-                    label = { Text("Content") },
-                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary).heightIn(max = 300.dp)
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Button(
-                    onClick = {
-                        if (title.isNotBlank() || contentText.isNotBlank()) {
-                            scope.launch {
-                                dao.upsertNote(Note(title = title, content = contentText))
-                                notes = refreshNotes(dao)
-                                title = ""
-                                contentText = ""
-                            }
-                        }
-                    },
-                    modifier = Modifier.scale(0.6f)
-                ) {
-                    Text(text = "Add Note",
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(18.dp)
-                    )
-                }
-            }
-        }
-    }
-    LazyColumn(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .animateContentSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
-        contentPadding = PaddingValues(30.dp)
-    ) {
-        if(!notes.isNullOrEmpty()) {
-            item{
-                Text(
-                    text = "NOTES",
-                    style = MaterialTheme.typography.headlineMedium,
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                );
-                Spacer(modifier = Modifier.padding(10.dp))
-            }
-            items(notes!!) { note ->
-                Column{
-                    Card(
-                        shape = cornerPinchedRoundedShape,
-                        modifier = Modifier
-                            .padding(vertical = 10.dp)
-                            .fillMaxWidth()
-                            .border(
-                                2.dp,
-                                MaterialTheme.colorScheme.primary,
-                                cornerPinchedRoundedShape
-                            ),
+        verticalArrangement = Arrangement.Top) {
+        AnimatedVisibility(
+            visible = fell,
+            enter = slideInVertically(animationSpec = tween(1000)) {-it}
+        ) {
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    Modifier
+                        .wrapContentHeight()
+                        .fillMaxWidth(0.8f)
+                        .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp,10.dp))
+                        .padding(5.dp,0.dp)
+                ) {
+                    Column(
+                        Modifier
+                            .wrapContentSize()
+                            .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp,10.dp))
+                            .border(border = BorderStroke(brush = Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, Color.Transparent), start = Offset(100L)), width = 2.dp), RoundedCornerShape(10.dp,10.dp))
+                            .padding(10.dp,0.dp)
                     ) {
                         Column(
-                            modifier =
-                                if (selectedNoteId == note.id) {
-                                    Modifier
-                                        .background(MaterialTheme.colorScheme.primary)
-                                        .padding(12.dp)
-                                } else {
-                                    Modifier.padding(18.dp)
-                                }
-                                    .clickable(enabled = true, onClick = {
-                                        selectedNoteId = if (selectedNoteId == note.id) {
-                                            null
-                                        } else {
-                                            note.id
-                                        }
-                                    })
+                            Modifier
+                                .wrapContentSize()
+                                .background(MaterialTheme.colorScheme.background,RoundedCornerShape(10.dp,10.dp))
+                                .padding(10.dp)
                         ) {
-                            Text(
-                                text = note.title,
-                                style = if(selectedNoteId==note.id) {MaterialTheme.typography.titleSmall} else {MaterialTheme.typography.titleMedium},
-                                textAlign = TextAlign.Start,
-                                color = if (selectedNoteId == note.id) {
-                                    MaterialTheme.colorScheme.background
-                                } else {
-                                    Color.Unspecified
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(start = 8.dp)
-                            )
-                            Spacer(modifier = Modifier.height(10.dp))
-                            AnimatedVisibility(
-                                visible = selectedNoteId == note.id,
-                                enter = fadeIn(animationSpec = tween(1000)),
-                                exit = fadeOut(animationSpec = tween(1000)),
-                            ) {
-                                Column(
-                                    verticalArrangement = Arrangement.Bottom,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(24.dp))
-                                        .background(MaterialTheme.colorScheme.background)
-                                        .padding(2.dp)
-                                        .border(
-                                            2.dp,
-                                            MaterialTheme.colorScheme.primary,
-                                            RoundedCornerShape(24.dp)
-                                        )
-                                ) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.End,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = note.content,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            textAlign = TextAlign.Center,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(8.dp)
-                                                .weight(0.8f)
-                                        )
-                                        Button(
-                                            onClick = {
-                                                scope.launch {
-                                                    dao.deleteNoteById(note.id)
-                                                    notes = dao.getAllNotes()
-                                                    selectedNoteId = null
+                            Column(modifier = Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally){
+                                LazyColumn(modifier = Modifier.wrapContentSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                                    item {
+                                        Spacer(Modifier.fillMaxWidth().height(40.dp))
+                                        Button(onClick = { newNote = true }) {
+                                            Text("ADD NOTE")
+                                        }
+                                        Spacer(Modifier.height(70.dp))
+                                    }
+                                    if(!notes.isNullOrEmpty()) {
+                                        itemsIndexed(notes!!) { index , note ->
+                                            AnimatedVisibility(
+                                                visible = loaded && note.id != deletingNoteId,
+                                                enter = scaleIn(animationSpec = tween(1000, index.times(100))),
+                                                exit = scaleOut(animationSpec = tween(500, index.times(100)))
+                                            ) {
+                                                Column(
+                                                    Modifier
+                                                        .fillParentMaxWidth(0.9f)
+                                                        .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp))
+                                                        .padding(10.dp)
+                                                        .clickable(enabled = true, onClick = {if(selectedNoteId == note.id) {selectedNoteId = null} else {selectedNoteId = note.id} })
+                                                ) {
+                                                    Column(
+                                                        Modifier
+                                                            .fillMaxSize()
+                                                            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp))
+                                                            .border(2.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(10.dp))
+                                                            .padding(10.dp)
+                                                    ) {
+                                                        Row{
+                                                            Text(text = note.title, style = MaterialTheme.typography.titleMedium)
+                                                            Spacer(Modifier.weight(1f))
+                                                            Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.clickable(enabled = true, onClick = {
+                                                                scope.launch {
+                                                                    deletingNoteId = note.id
+                                                                    dao.deleteNoteById(note.id)
+                                                                    delay(500)
+                                                                    notes = refreshNotes(dao)
+                                                                    selectedNoteId = null
+                                                                    deletingNoteId = null
+                                                                }
+                                                            }))
+                                                        }
+                                                        AnimatedVisibility(visible = selectedNoteId==note.id) {
+                                                            Column{
+                                                                Column(
+                                                                    Modifier
+                                                                        .fillMaxSize()
+                                                                        .background(MaterialTheme.colorScheme.background, RoundedCornerShape(10.dp))
+                                                                        .padding(10.dp)
+                                                                ){
+                                                                    Column(
+                                                                        Modifier
+                                                                            .fillMaxSize()
+                                                                            .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp))
+                                                                            .padding(10.dp)
+                                                                            .heightIn(max = 500.dp)
+                                                                            .verticalScroll(rememberScrollState())
+                                                                    ){
+                                                                        Text(text = note.content, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.background)
+                                                                    }
+                                                                }
+                                                                Row{
+                                                                    Spacer(Modifier.weight(1f))
+                                                                    Text(text = java.sql.Date.from(Instant.ofEpochMilli(note.date.milliseconds.toLong(DurationUnit.MILLISECONDS))).toString(), style = MaterialTheme.typography.titleSmall, modifier = Modifier.scale(0.8f))
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
-                                            },
-                                            modifier = Modifier
-                                                .weight(0.3f)
-                                                .scale(0.5f)
-                                        ) {
-                                            Text("DELETE")
+                                                Spacer(Modifier.height(60.dp))
+                                            }
                                         }
                                     }
                                 }
+                                Spacer(Modifier.height(80.dp))
                             }
                         }
                     }
-                    Row {
-                        Spacer(modifier = Modifier.weight(0.7f))
-                        Text(
-                            text = java.sql.Date.from(Instant.ofEpochMilli(note.date.milliseconds.toLong(DurationUnit.MILLISECONDS))).toString(),
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(8.dp)
+                }
+                Column(
+                    Modifier
+                        .fillMaxWidth(0.9f)
+                        .wrapContentHeight()
+                        .background(MaterialTheme.colorScheme.background,RoundedCornerShape(5.dp,5.dp,10.dp,10.dp))
+                        .padding(5.dp)
+                ) {
+                    Column(
+                        Modifier
+                            .background(MaterialTheme.colorScheme.secondary,RoundedCornerShape(5.dp,5.dp,10.dp,10.dp))
+                            .border(2.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(5.dp,5.dp,10.dp,10.dp))
+                            .padding(5.dp)
+                    ){}
+                }
+                Column(
+                    Modifier
+                        .fillMaxWidth(0.4f)
+                        .wrapContentHeight()
+                        .background(MaterialTheme.colorScheme.background,RoundedCornerShape(0.dp,0.dp,10.dp,10.dp))
+                        .padding(5.dp)
+                ) {
+                    Column(
+                        Modifier
+                            .background(MaterialTheme.colorScheme.secondary,RoundedCornerShape(0.dp,0.dp,10.dp,10.dp))
+                            .border(2.dp,MaterialTheme.colorScheme.primary,RoundedCornerShape(0.dp,0.dp,10.dp,10.dp))
+                            .padding(5.dp)
+                    ) {}
+                }
+            }
+        }
+    }
+    AnimatedVisibility(
+        visible = newNote,
+        enter = scaleIn(animationSpec = tween(1000)),
+        exit = fadeOut(animationSpec = tween(1000))
+    ) {
+        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+            Column(
+                Modifier
+                    .wrapContentHeight()
+                    .fillMaxWidth(0.8f)
+                    .background(MaterialTheme.colorScheme.background,RoundedCornerShape(0.dp,0.dp,10.dp,10.dp))
+                    .padding(5.dp)
+            ) {
+                Column(
+                    Modifier
+                        .background(MaterialTheme.colorScheme.secondary,RoundedCornerShape(0.dp,0.dp,10.dp,10.dp))
+                        .padding(5.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .wrapContentSize(Alignment.Center)
+                            .background(MaterialTheme.colorScheme.background, cornerPinchedRoundedShape)
+                            .padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ){
+                        var title by remember {mutableStateOf("")}
+                        var content by remember { mutableStateOf("") }
+                        Row { Spacer(Modifier.weight(1f)); Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.clickable(enabled = true, onClick = {newNote = false})) }
+                        TextField(
+                            value = title,
+                            onValueChange = {title = it},
+                            label = { Text("Title") },
+                            modifier = Modifier.width(400.dp).padding(5.dp).clip(cornerPinchedRoundedShape)
                         )
+                        Spacer(Modifier.height(5.dp))
+                        TextField(
+                            value = content,
+                            textStyle = MaterialTheme.typography.bodySmall,
+                            onValueChange = {content = it},
+                            label = { Text("Content") },
+                            modifier = Modifier.width(300.dp).clip(cornerPinchedRoundedShape).heightIn(max = 300.dp).padding(5.dp)
+                        )
+                        Spacer(Modifier.height(15.dp))
+                        Button(
+                            onClick = {
+                                if(title.isNotBlank() || content.isNotBlank()) {
+                                    scope.launch {
+                                        dao.upsertNote(Note(title = title, content = content))
+                                        notes = refreshNotes(dao)
+                                        title = ""
+                                        content = ""
+                                        newNote = false
+                                    }
+                                }
+                            },
+                            Modifier.scale(0.7f)
+                        ) {
+                            Text("ADD NOTE")
+                        }
                     }
                 }
             }
         }
     }
+//
+//    LazyColumn(
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Top,
+//        contentPadding = PaddingValues(30.dp)
+//    ){
+//        if(!notes.isNullOrEmpty()) {
+//            items(notes!!) { note ->
+//                Card {
+//                    Column{
+//                        Card(
+//                            shape = cornerPinchedRoundedShape,
+//                            modifier = Modifier
+//                                .padding(vertical = 10.dp)
+//                                .fillMaxWidth()
+//                                .border(
+//                                    2.dp,
+//                                    MaterialTheme.colorScheme.primary,
+//                                    cornerPinchedRoundedShape
+//                                ),
+//                        ) {
+//                            Column(
+//                                modifier =
+//                                    if (selectedNoteId == note.id) {
+//                                        Modifier
+//                                            .background(MaterialTheme.colorScheme.primary)
+//                                            .padding(12.dp)
+//                                    } else {
+//                                        Modifier.padding(18.dp)
+//                                    }
+//                                        .clickable(enabled = true, onClick = {
+//                                            selectedNoteId = if (selectedNoteId == note.id) {
+//                                                null
+//                                            } else {
+//                                                note.id
+//                                            }
+//                                        })
+//                            ) {
+//                                Text(
+//                                    text = note.title,
+//                                    style = if(selectedNoteId==note.id) {MaterialTheme.typography.titleSmall} else {MaterialTheme.typography.titleMedium},
+//                                    textAlign = TextAlign.Start,
+//                                    color = if (selectedNoteId == note.id) {
+//                                        MaterialTheme.colorScheme.background
+//                                    } else {
+//                                        Color.Unspecified
+//                                    },
+//                                    modifier = Modifier.fillMaxWidth().padding(start = 8.dp)
+//                                )
+//                                Spacer(modifier = Modifier.height(10.dp))
+//                                AnimatedVisibility(
+//                                    visible = selectedNoteId == note.id,
+//                                    enter = fadeIn(animationSpec = tween(1000)),
+//                                    exit = fadeOut(animationSpec = tween(1000)),
+//                                ) {
+//                                    Column(
+//                                        verticalArrangement = Arrangement.Bottom,
+//                                        horizontalAlignment = Alignment.CenterHorizontally,
+//                                        modifier = Modifier
+//                                            .clip(RoundedCornerShape(24.dp))
+//                                            .background(MaterialTheme.colorScheme.background)
+//                                            .padding(2.dp)
+//                                            .border(
+//                                                2.dp,
+//                                                MaterialTheme.colorScheme.primary,
+//                                                RoundedCornerShape(24.dp)
+//                                            )
+//                                    ) {
+//                                        Row(
+//                                            horizontalArrangement = Arrangement.End,
+//                                            verticalAlignment = Alignment.CenterVertically
+//                                        ) {
+//                                            Text(
+//                                                text = note.content,
+//                                                style = MaterialTheme.typography.bodyLarge,
+//                                                textAlign = TextAlign.Center,
+//                                                modifier = Modifier
+//                                                    .fillMaxWidth()
+//                                                    .padding(8.dp)
+//                                                    .weight(0.8f)
+//                                            )
+//                                            Button(
+//                                                onClick = {
+//                                                    scope.launch {
+//                                                        dao.deleteNoteById(note.id)
+//                                                        notes = dao.getAllNotes()
+//                                                        selectedNoteId = null
+//                                                    }
+//                                                },
+//                                                modifier = Modifier
+//                                                    .weight(0.3f)
+//                                                    .scale(0.5f)
+//                                            ) {
+//                                                Text("DELETE")
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                        Row {
+//                            Spacer(modifier = Modifier.weight(0.7f))
+//                            Text(
+//                                text = java.sql.Date.from(
+//                                    Instant.ofEpochMilli(note.date.milliseconds.toLong(
+//                                    DurationUnit.MILLISECONDS))).toString(),
+//                                style = MaterialTheme.typography.bodySmall,
+//                                textAlign = TextAlign.Center,
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .padding(8.dp)
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    Card (modifier = Modifier
+//        .border(2.dp, MaterialTheme.colorScheme.primary)
+//        .scale(0.85f)
+//        .border(2.dp, MaterialTheme.colorScheme.primary, cornerPinchedRoundedShape), shape = cornerPinchedRoundedShape) {
+//        Row(horizontalArrangement = Arrangement.End){
+//            Spacer(Modifier.weight(0.7f))
+//            Button(
+//                onClick = revertProfile,
+//                modifier = Modifier
+//                    .weight(0.3f)
+//                    .scale(0.8f)
+//            ) {
+//                Text("RETURN")
+//            }
+//        }
+//        Box(modifier = Modifier.padding(18.dp)) {
+//            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+//                var title by remember { mutableStateOf("") }
+//                var contentText by remember { mutableStateOf("") }
+//                TextField(
+//                    value = title,
+//                    onValueChange = { title = it },
+//                    label = { Text("Title") },
+//                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary)
+//                )
+//                Spacer(modifier = Modifier.height(10.dp))
+//                TextField(
+//                    value = contentText,
+//                    onValueChange = { contentText = it },
+//                    label = { Text("Content") },
+//                    modifier = Modifier.border(2.dp, MaterialTheme.colorScheme.primary).heightIn(max = 300.dp)
+//                )
+//                Spacer(modifier = Modifier.height(10.dp))
+//                Button(
+//                    onClick = {
+//                        if (title.isNotBlank() || contentText.isNotBlank()) {
+//                            scope.launch {
+//                                dao.upsertNote(Note(title = title, content = contentText))
+//                                notes = refreshNotes(dao)
+//                                title = ""
+//                                contentText = ""
+//                            }
+//                        }
+//                    },
+//                    modifier = Modifier.scale(0.6f)
+//                ) {
+//                    Text(text = "Add Note",
+//                        style = MaterialTheme.typography.titleLarge,
+//                        textAlign = TextAlign.Center,
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(18.dp)
+//                    )
+//                }
+//            }
+//        }
+//    }
+//    LazyColumn(
+//        horizontalAlignment = Alignment.CenterHorizontally,
+//        verticalArrangement = Arrangement.Top,
+//        contentPadding = PaddingValues(30.dp)
+//    ) {
+//        if(!notes.isNullOrEmpty()) {
+//            item{
+//                Text(
+//                    text = "NOTES",
+//                    style = MaterialTheme.typography.headlineMedium,
+//                    textDecoration = TextDecoration.Underline,
+//                    modifier = Modifier.padding(vertical = 8.dp)
+//                );
+//                Spacer(modifier = Modifier.padding(10.dp))
+//            }
+//            items(notes!!) { note ->
+//
+//            }
+//        }
+//    }
 }

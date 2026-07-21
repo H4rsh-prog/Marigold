@@ -10,7 +10,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.Density
 import com.example.marigold.composables.AppNavigation
-import com.example.marigold.composables.DashboardComposables.ProfileTabs
 import com.example.marigold.ui.theme.MarigoldTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,8 +28,6 @@ class MainActivity : ComponentActivity() {
                 ) {
                     AppNavigation(
 //                        onAuthenticate = BiometricFingerprintAuthentication()::showBiometricPrompt,
-                        overrideNavIndx = 1,
-                        overrideProfileTabs = ProfileTabs.MEDIA
                     )
                 }
             }
