@@ -58,7 +58,11 @@ fun AppNavigation(
                         },
                     initialContentExit =
                         if(targetState>prevNavIndx) {
-                            scaleOut(tween(animationDuration), targetScale = 2.5F, )
+                            if(prevNavIndx==NavigationIndx.AUTH_SCREEN.index) {
+                                slideOutVertically(tween(animationDuration)) { it }
+                            } else {
+                                scaleOut(tween(animationDuration), targetScale = 2.5F,)
+                            }
                         } else {
                             slideOutVertically(tween(animationDuration)) { it*2 }
                         }
