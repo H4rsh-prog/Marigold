@@ -10,10 +10,9 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -46,7 +44,6 @@ import androidx.core.net.toUri
 import androidx.room.Room
 import coil.compose.rememberAsyncImagePainter
 import com.example.marigold.R
-import com.example.marigold.composables.DashboardComposables.ProfileTabs
 import com.example.marigold.composables.DashboardComposables.refreshMedia
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Media
@@ -90,8 +87,8 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
         label = "media",
         transitionSpec = {
             ContentTransform(
-                targetContentEnter = scaleIn(tween(1000)),
-                initialContentExit = scaleOut(tween(1000))
+                targetContentEnter = slideInVertically(tween(1000)) {-it},
+                initialContentExit = slideOutVertically(tween(1000)) {it}
             )
         },
         content = { preview ->
@@ -101,13 +98,12 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable(enabled = true, onClick = { previewMedia = null })
-                        .background(Color.Black),
+                        .clickable(enabled = true, onClick = { previewMedia = null }),
                 )
             } else {
                 LazyVerticalGrid(
                     horizontalArrangement = Arrangement.Center,
-                    verticalArrangement = Arrangement.SpaceEvenly,
+                    verticalArrangement = Arrangement.Center,
                     columns = GridCells.Adaptive(minSize = 200.dp),
                     contentPadding = PaddingValues(8.dp),
                 ) {
@@ -123,7 +119,7 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                                         modifier = Modifier
                                             .padding(4.dp)
                                             .height(80.dp)
-                                            .clickable(enabled = true, onClick = { backStack.add(ProfileTabs.MEDIA); previewMedia = media }),
+                                            .clickable(enabled = true, onClick = { previewMedia = media }),
                                         shape = RoundedCornerShape(8.dp)
                                     ) {
                                         Image(
