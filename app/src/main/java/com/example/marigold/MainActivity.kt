@@ -22,8 +22,8 @@ class MainActivity : ComponentActivity() {
                 val fontScale = minOf(density.fontScale, 1.3f)
                 CompositionLocalProvider(
                     LocalDensity provides Density(
-                        density = density.density,
-                        fontScale = fontScale
+                        density = 1.85f,
+                        fontScale = 1.3f
                     )
                 ) {
                     AppNavigation(

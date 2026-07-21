@@ -51,7 +51,7 @@ fun DefineMarigold(
     val focus = LocalFocusManager.current;
     Box (
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxSize(),
     ) {
         Column(
             modifier = modifier
@@ -75,14 +75,12 @@ fun DefineMarigold(
                     TextField(
                         value = input,
                         onValueChange = { text ->
-                            run {
-                                input = text;
-                                if (input.equals(DEFINE_MARIGOLD)) {
-                                    scope.launch {
-                                        focus.clearFocus(true)
-                                        delay(500)
-                                        resolveView()
-                                    }
+                            input = text;
+                            if (input.equals(DEFINE_MARIGOLD)) {
+                                scope.launch {
+                                    focus.clearFocus(true)
+                                    delay(500)
+                                    resolveView()
                                 }
                             }
                         },
@@ -137,7 +135,7 @@ fun DefineMarigold(
                         scope.launch {
                             focus.clearFocus(true)
                             delay(500)
-                            resolveView();
+                            resolveView()
                             delay(500)
                             dataHandler.savePreference(dataHandler.DEFINE_MARIGOLD, input);
                         }
