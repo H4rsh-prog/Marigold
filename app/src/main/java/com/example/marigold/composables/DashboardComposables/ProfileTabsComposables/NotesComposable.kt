@@ -73,7 +73,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
             context,
             DB::class.java,
             "marigold_db"
-        ).build()
+        ).createFromAsset("databases/initMarigold.db").build()
     }
     val dao = remember { db.noteDAO() }
     val scope = rememberCoroutineScope()
