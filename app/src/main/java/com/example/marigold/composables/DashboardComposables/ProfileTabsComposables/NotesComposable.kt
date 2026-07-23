@@ -79,7 +79,8 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     val scope = rememberCoroutineScope()
     var notes by remember { mutableStateOf(null as List<Note>?) }
     var newNote by remember { mutableStateOf(false) }
-    var selectedNoteId by remember { mutableStateOf(null as String?) }
+    var updateNote by remember { mutableStateOf(false) }
+    var selectedNote by remember { mutableStateOf(null as Note?) }
     var loaded by remember { mutableStateOf(false) }
     var fell by remember { mutableStateOf(false) }
     var deletingNoteId by remember { mutableStateOf(null as String?) }
@@ -140,7 +141,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                                         .fillMaxWidth(0.9f)
                                                         .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(10.dp))
                                                         .padding(10.dp)
-                                                        .clickable(enabled = true, onClick = {if(selectedNoteId == note.id) {selectedNoteId = null} else {selectedNoteId = note.id} })
+                                                        .clickable(enabled = true, onClick = {if(selectedNote == note) {selectedNote = null} else {selectedNote = note} })
                                                 ) {
                                                     Column(
                                                         Modifier
@@ -152,18 +153,22 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                                         Row{
                                                             Text(text = note.title, style = MaterialTheme.typography.titleMedium)
                                                             Spacer(Modifier.weight(1f))
+                                                            Icon(painter = painterResource(R.drawable.ic_edit), contentDescription = null, modifier = Modifier.clickable(enabled = true, onClick = {
+                                                                selectedNote = note
+                                                                updateNote = true
+                                                            }))
                                                             Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.clickable(enabled = true, onClick = {
                                                                 scope.launch {
                                                                     deletingNoteId = note.id
                                                                     dao.deleteNoteById(note.id)
                                                                     delay(500)
                                                                     notes = refreshNotes(dao)
-                                                                    selectedNoteId = null
+                                                                    selectedNote = null
                                                                     deletingNoteId = null
                                                                 }
                                                             }))
                                                         }
-                                                        AnimatedVisibility(visible = selectedNoteId==note.id) {
+                                                        AnimatedVisibility(visible = selectedNote==note) {
                                                             Column{
                                                                 Column(
                                                                     Modifier
@@ -238,7 +243,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
         }
     }
     AnimatedVisibility(
-        visible = newNote,
+        visible = newNote || updateNote,
         enter = scaleIn(animationSpec = tween(1000)),
         exit = fadeOut(animationSpec = tween(1000))
     ) {
@@ -263,8 +268,8 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ){
-                        var title by remember {mutableStateOf("")}
-                        var content by remember { mutableStateOf("") }
+                        var title by remember {mutableStateOf(if(updateNote) {selectedNote!!.title} else {""})}
+                        var content by remember { mutableStateOf(if(updateNote) {selectedNote!!.content} else {""}) }
                         Row { Spacer(Modifier.weight(1f)); Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.clickable(enabled = true, onClick = {newNote = false})) }
                         TextField(
                             value = title,
@@ -285,17 +290,27 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                             onClick = {
                                 if(title.isNotBlank() || content.isNotBlank()) {
                                     scope.launch {
-                                        dao.upsertNote(Note(title = title, content = content))
+                                        if(updateNote) {
+                                            dao.upsertNote(Note(id = selectedNote!!.id, title = title, content = content))
+                                        } else {
+                                            dao.upsertNote(Note(title = title, content = content))
+                                        }
                                         notes = refreshNotes(dao)
                                         title = ""
                                         content = ""
                                         newNote = false
+                                        updateNote = false
+                                        selectedNote = null;
                                     }
                                 }
                             },
                             Modifier.scale(0.7f)
                         ) {
-                            Text("ADD NOTE")
+                            if(updateNote) {
+                                Text("UPDATE")
+                            } else {
+                                Text("ADD")
+                            }
                         }
                     }
                 }
