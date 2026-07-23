@@ -47,11 +47,13 @@ import com.example.marigold.R
 import com.example.marigold.composables.DashboardComposables.refreshMedia
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Media
+import com.example.marigold.services.DataHandler
 import kotlinx.coroutines.launch
 
 @Composable
 fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any>){
     val context = LocalContext.current
+    val dataHandler = DataHandler(context)
     val db = remember {
         Room.databaseBuilder(
             context = context,
@@ -77,7 +79,7 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                     )
                     dao.upsertMedia(Media(uri = uri.toString()))
                 }
-                mediaItems = refreshMedia(dao);
+                mediaItems = refreshMedia(dao)
             }
         }
     }
@@ -100,6 +102,17 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                         .fillMaxSize()
                         .clickable(enabled = true, onClick = { previewMedia = null }),
                 )
+                Box(modifier = Modifier.fillMaxSize().padding(10.dp) ,contentAlignment = Alignment.BottomEnd) {
+                    Button(onClick = {
+                        scope.launch {
+                            dao.deleteMediaById(preview.id)
+                            mediaItems = refreshMedia(dao)
+                            previewMedia = null
+                        }
+                    }) {
+                        Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = "Delete Photo")
+                    }
+                }
             } else {
                 LazyVerticalGrid(
                     horizontalArrangement = Arrangement.Center,
