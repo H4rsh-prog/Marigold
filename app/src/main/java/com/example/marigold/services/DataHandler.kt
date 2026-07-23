@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
-class DataHandler(context: Context) {
+class DataHandler(private val context: Context) {
     val DEFINE_MARIGOLD = "DEFINE_MARIGOLD"
     private val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -37,5 +37,8 @@ class DataHandler(context: Context) {
             sharedPreferences.edit().clear().apply()
             false
         }
+    }
+    suspend fun uploadData(){
+        //TO IMPLEMENT
     }
 }

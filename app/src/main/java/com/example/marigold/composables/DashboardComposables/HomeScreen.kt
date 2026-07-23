@@ -35,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.example.marigold.R
 import com.example.marigold.composables.NavigationIndx
+import com.example.marigold.services.DataHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -52,6 +54,7 @@ data object splash
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (NavigationIndx) -> Unit, overrideProfileTabs: ProfileTabs? = null){
     val backStack = remember { mutableStateListOf<Any>(profile) }
+    val dataHandler = DataHandler(LocalContext.current)
     remember {
         if(overrideProfileTabs!=null) {
             backStack.add(overrideProfileTabs)
@@ -185,7 +188,7 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                                                         )
                                                     }
                                                 }
-                                                RedefineAuth({overrideNavigationIndx(NavigationIndx.AUTH_SCREEN)})
+                                                RedefineAuth({dataHandler.removePreference(dataHandler.DEFINE_MARIGOLD);overrideNavigationIndx(NavigationIndx.AUTH_SCREEN)})
                                             }
                                         }
                                     }
