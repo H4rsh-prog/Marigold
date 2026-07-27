@@ -54,7 +54,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.room.Room
 import com.example.marigold.R
-import com.example.marigold.composables.DashboardComposables.refreshNotes
 import com.example.marigold.model.DB
 import com.example.marigold.model.Note.Note
 import com.example.marigold.ui.component.shapes.cornerPinchedRoundedShape
@@ -87,7 +86,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     LaunchedEffect(Unit) {
         delay(500)
         fell = true
-        notes = refreshNotes(dao)
+        notes = dao.getAllNotes().sortedByDescending { note -> note.date }
         delay(1000)
         loaded = true
     }
@@ -162,7 +161,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                                                     deletingNoteId = note.id
                                                                     dao.deleteNoteById(note.id)
                                                                     delay(500)
-                                                                    notes = refreshNotes(dao)
+                                                                    notes = dao.getAllNotes().sortedByDescending { note -> note.date }
                                                                     selectedNote = null
                                                                     deletingNoteId = null
                                                                 }
@@ -295,7 +294,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                         } else {
                                             dao.upsertNote(Note(title = title, content = content))
                                         }
-                                        notes = refreshNotes(dao)
+                                        notes = dao.getAllNotes().sortedByDescending { note -> note.date }
                                         title = ""
                                         content = ""
                                         newNote = false

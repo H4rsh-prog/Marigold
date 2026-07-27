@@ -44,7 +44,6 @@ import androidx.core.net.toUri
 import androidx.room.Room
 import coil.compose.rememberAsyncImagePainter
 import com.example.marigold.R
-import com.example.marigold.composables.DashboardComposables.refreshMedia
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Media
 import com.example.marigold.services.DataHandler
@@ -65,7 +64,7 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
     val scope = rememberCoroutineScope()
     var mediaItems by remember { mutableStateOf(null as List<Media>?) }
     LaunchedEffect(Unit) {
-        mediaItems = refreshMedia(dao)
+        mediaItems = dao.getAllMedia().sortedByDescending { media -> media.date }
     }
     val mediaPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -79,7 +78,7 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                     )
                     dao.upsertMedia(Media(uri = uri.toString()))
                 }
-                mediaItems = refreshMedia(dao)
+                mediaItems = dao.getAllMedia().sortedByDescending { media -> media.date }
             }
         }
     }
@@ -106,7 +105,7 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                     Button(onClick = {
                         scope.launch {
                             dao.deleteMediaById(preview.id)
-                            mediaItems = refreshMedia(dao)
+                            mediaItems = dao.getAllMedia().sortedByDescending { media -> media.date }
                             previewMedia = null
                         }
                     }) {
