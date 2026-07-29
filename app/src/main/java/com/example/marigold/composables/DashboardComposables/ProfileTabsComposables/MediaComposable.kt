@@ -64,7 +64,7 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
     val scope = rememberCoroutineScope()
     var mediaItems by remember { mutableStateOf(null as List<Media>?) }
     LaunchedEffect(Unit) {
-        mediaItems = dao.getAllMedia().sortedByDescending { media -> media.date }
+        mediaItems = dao.getAll().sortedByDescending { media -> media.date }
     }
     val mediaPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -104,8 +104,8 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                 Box(modifier = Modifier.fillMaxSize().padding(10.dp) ,contentAlignment = Alignment.BottomEnd) {
                     Button(onClick = {
                         scope.launch {
-                            dao.deleteMediaById(preview.id)
-                            mediaItems = dao.getAllMedia().sortedByDescending { media -> media.date }
+                            dao.deleteById(preview.id)
+                            mediaItems = dao.getAll().sortedByDescending { media -> media.date }
                             previewMedia = null
                         }
                     }) {
