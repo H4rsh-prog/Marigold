@@ -29,7 +29,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "MY_TEST_ENV", "\"${env.getProperty("keystore.password")}\"");
+        buildConfigField("String", "dataSourceHost", "\"${env.getProperty("datasource.host")}\"")
+        buildConfigField("String", "dataSourcePort", "\"${env.getProperty("datasource.port")}\"")
+        buildConfigField("String", "dataSourceDB", "\"${env.getProperty("datasource.db")}\"")
+        buildConfigField("String", "dataSourceUsername", "\"${env.getProperty("datasource.username")}\"")
+        buildConfigField("String", "dataSourcePassword", "\"${env.getProperty("datasource.password")}\"");
     }
 }
 ksp {
@@ -92,11 +96,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.adaptive.navigation3)
     implementation(libs.kotlinx.serialization.core)
-    ksp(libs.androidx.room.compiler)
+    // Source: https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    implementation("mysql:mysql-connector-java:5.1.49")
 }

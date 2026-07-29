@@ -38,7 +38,4 @@ class DataHandler(private val context: Context) {
             false
         }
     }
-    suspend fun uploadData(){
-        //TO IMPLEMENT
-    }
 }
