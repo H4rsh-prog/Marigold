@@ -6,17 +6,17 @@ import androidx.room.Query
 import androidx.room.Upsert
 
 @Dao
-interface NoteDAO {
+interface NoteRoomDao {
     @Upsert(entity = Note::class)
-    suspend fun upsertNote(note: Note)
+    suspend fun upsert(note: Note)
     @Delete(entity = Note::class)
-    suspend fun deleteNote(note: Note)
+    suspend fun delete(note: Note)
     @Query("SELECT * FROM tbl_notes WHERE id = :id")
-    suspend fun getNoteById(id: String): Note?
+    suspend fun getById(id: String): Note?
     @Query("DELETE FROM tbl_notes WHERE id = :id")
-    suspend fun deleteNoteById(id: String)
+    suspend fun deleteById(id: String)
     @Query("SELECT * FROM tbl_notes")
-    suspend fun getAllNotes(): List<Note>
+    suspend fun getAll(): List<Note>
     @Query("DELETE FROM tbl_notes")
-    suspend fun deleteAllNotes()
+    suspend fun deleteAll()
 }
