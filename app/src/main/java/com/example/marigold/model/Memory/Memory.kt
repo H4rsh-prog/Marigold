@@ -8,5 +8,6 @@ import java.util.UUID
 data class Memory (
     @PrimaryKey
     var id: String = UUID.randomUUID().toString(),
-    var memory: String = ""
+    var memory: String = "",
+    var date: Long = System.currentTimeMillis()
 )

@@ -13,7 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import com.example.marigold.model.Memory.Memory
-import com.example.marigold.model.Memory.MemoryDao
+import com.example.marigold.model.Memory.MemoryRemoteDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -21,13 +21,13 @@ import java.util.UUID
 
 @Composable
 fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>) {
-    val dao = remember { MemoryDao() }
+    val remote = remember { MemoryRemoteDao() }
     var memories by remember { mutableStateOf(emptyList<Memory>()) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            memories = dao.fetchMemories()
+            memories = remote.fetch()
         }
     }
 
@@ -41,13 +41,13 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
         onClick = {
             scope.launch {
                 withContext(Dispatchers.IO) {
-                    dao.addMemory(
+                    remote.add(
                         Memory(
                             id = UUID.randomUUID().toString(),
                             memory = LoremIpsum(50).values.joinToString(" ")
                         )
                     )
-                    memories = dao.fetchMemories()
+                    memories = remote.fetch()
                 }
             }
         }

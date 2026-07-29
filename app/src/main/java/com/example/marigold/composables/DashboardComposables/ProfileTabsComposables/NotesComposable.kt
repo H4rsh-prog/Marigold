@@ -86,7 +86,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     LaunchedEffect(Unit) {
         delay(500)
         fell = true
-        notes = dao.getAllNotes().sortedByDescending { note -> note.date }
+        notes = dao.getAll().sortedByDescending { note -> note.date }
         delay(1000)
         loaded = true
     }
@@ -159,9 +159,9 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                                             Icon(painter = painterResource(R.drawable.ic_delete), contentDescription = null, modifier = Modifier.clickable(enabled = true, onClick = {
                                                                 scope.launch {
                                                                     deletingNoteId = note.id
-                                                                    dao.deleteNoteById(note.id)
+                                                                    dao.deleteById(note.id)
                                                                     delay(500)
-                                                                    notes = dao.getAllNotes().sortedByDescending { note -> note.date }
+                                                                    notes = dao.getAll().sortedByDescending { note -> note.date }
                                                                     selectedNote = null
                                                                     deletingNoteId = null
                                                                 }
@@ -290,11 +290,11 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                 if(title.isNotBlank() || content.isNotBlank()) {
                                     scope.launch {
                                         if(updateNote) {
-                                            dao.upsertNote(Note(id = selectedNote!!.id, title = title, content = content))
+                                            dao.upsert(Note(id = selectedNote!!.id, title = title, content = content))
                                         } else {
-                                            dao.upsertNote(Note(title = title, content = content))
+                                            dao.upsert(Note(title = title, content = content))
                                         }
-                                        notes = dao.getAllNotes().sortedByDescending { note -> note.date }
+                                        notes = dao.getAll().sortedByDescending { note -> note.date }
                                         title = ""
                                         content = ""
                                         newNote = false

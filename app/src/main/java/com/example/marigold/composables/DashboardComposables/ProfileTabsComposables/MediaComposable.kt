@@ -76,9 +76,9 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                         uri,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
-                    dao.upsertMedia(Media(uri = uri.toString()))
+                    dao.upsert(Media(uri = uri.toString()))
                 }
-                mediaItems = dao.getAllMedia().sortedByDescending { media -> media.date }
+                mediaItems = dao.getAll().sortedByDescending { media -> media.date }
             }
         }
     }
