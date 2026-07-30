@@ -5,13 +5,11 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.sql.Connection
 
-open class RemoteDao<clazz> {
-    var TABLE_NAME : String
-    var ENTITY_TYPE : Class<clazz>
-    constructor(table_name: String, entity_type : Class<clazz>) {
-        this.TABLE_NAME = table_name
-        this.ENTITY_TYPE = entity_type
-    }
+open class RemoteDao<clazz, pk_type> (
+    var TABLE_NAME : String,
+    var ENTITY_TYPE : Class<clazz>,
+    var PK_NAME : String = "id"
+) {
     protected fun getConnection(): Connection? = remoteSQLHandler().getSQLConnection()
     //HELPER FUNCTION TO RFILTER SYNTHETIC AND STATIC FIELDS OF KOTLIN
     private fun getPersistentFields(cls: Class<*>): List<Field> {
@@ -62,7 +60,7 @@ open class RemoteDao<clazz> {
             }
             query = query.dropLast(1)
             query += ") VALUES ("
-            fields.forEach { field ->
+            fields.forEach { _ ->
                 query += "?,"
             }
             query = query.dropLast(1)
@@ -76,6 +74,43 @@ open class RemoteDao<clazz> {
                 executeUpdate()
             }
         } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            con.close()
+        }
+    }
+    fun remove(primaryKey: pk_type) {
+        val con = getConnection() ?: return
+        try {
+            con.prepareStatement("DELETE FROM $TABLE_NAME WHERE ${PK_NAME} = ?").apply {
+                setObject(1, primaryKey)
+                executeUpdate()
+            }
+        } catch (e : Exception) {
+            e.printStackTrace()
+        } finally {
+            con.close()
+        }
+    }
+    fun update(entity: clazz) {
+        entity ?: return
+        val con = getConnection() ?: return
+        try {
+            val fields = getPersistentFields(ENTITY_TYPE)
+            val primaryKeyField = fields.find { it.name==PK_NAME } ?: throw Exception("No primary key found")
+            val setClause = fields.filter { it.name != PK_NAME }.joinToString(", ") { "${it.name} = ?" }
+            var query = "UPDATE $TABLE_NAME SET $setClause WHERE $PK_NAME = ?"
+            con.prepareStatement(query).apply {
+                var index = 1
+                fields.forEach { field ->
+                    if(field.name!=PK_NAME) {
+                        setObject(index++, field.get(entity))
+                    }
+                }
+                setObject(index, primaryKeyField.get(entity))
+                executeUpdate()
+            }
+        } catch (e : Exception) {
             e.printStackTrace()
         } finally {
             con.close()
