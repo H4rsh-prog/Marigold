@@ -1,6 +1,7 @@
 package com.example.marigold.composables.DashboardComposables.ProfileTabsComposables
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -119,29 +120,34 @@ fun MediaComposable(revertProfile : () -> Unit, backStack: SnapshotStateList<Any
                     columns = GridCells.Adaptive(minSize = 200.dp),
                     contentPadding = PaddingValues(8.dp),
                 ) {
+
                     if (!mediaItems.isNullOrEmpty()) {
                         (mediaItems as Iterable<Media?>).forEachIndexed { index, media ->
-                            item {
-                                AnimatedVisibility(
-                                    visible = previewMedia == null,
-                                    enter = fadeIn(animationSpec = tween(1000 + (index.times(1000)))),
-                                    exit = fadeOut(animationSpec = tween(1000)),
-                                ) {
-                                    Card(
-                                        modifier = Modifier
-                                            .padding(4.dp)
-                                            .height(80.dp)
-                                            .clickable(enabled = true, onClick = { previewMedia = media }),
-                                        shape = RoundedCornerShape(8.dp)
+                            try {
+                                item {
+                                    AnimatedVisibility(
+                                        visible = previewMedia == null,
+                                        enter = fadeIn(animationSpec = tween(1000 + (index.times(1000)))),
+                                        exit = fadeOut(animationSpec = tween(1000)),
                                     ) {
-                                        Image(
-                                            painter = rememberAsyncImagePainter(media?.uri?.toUri()),
-                                            contentDescription = null,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
+                                        Card(
+                                            modifier = Modifier
+                                                .padding(4.dp)
+                                                .height(80.dp)
+                                                .clickable(enabled = true, onClick = { previewMedia = media }),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Image(
+                                                painter = rememberAsyncImagePainter(media?.uri?.toUri()),
+                                                contentDescription = null,
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
                                     }
                                 }
+                            } catch (e: Exception) {
+                                Toast.makeText(context, "Internet Connectivity Issue", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }

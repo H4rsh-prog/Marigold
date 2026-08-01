@@ -10,7 +10,7 @@ import com.example.marigold.model.Note.NoteRoomDao
 
 @Database(
     entities = [Note::class, Media::class, Memory::class],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class DB : RoomDatabase() {
