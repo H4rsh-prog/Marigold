@@ -159,9 +159,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                         color = Color.Gray
                     )
                 }
-
                 Spacer(Modifier.height(24.dp))
-
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -224,7 +222,6 @@ fun CoreMemoryShowcase(
             MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)   // MarigoldOrange
         )
     )
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -280,9 +277,7 @@ fun CoreMemoryShowcase(
                         )
                     }
                 }
-
                 Spacer(Modifier.height(32.dp))
-
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "“",
@@ -312,9 +307,7 @@ fun CoreMemoryShowcase(
                             .offset(x = 0.dp, y = 100.dp)
                     )
                 }
-
                 Spacer(Modifier.height(40.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,

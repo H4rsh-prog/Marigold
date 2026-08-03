@@ -13,6 +13,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +56,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -84,11 +86,9 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     val dao = remember { db.mediaDAO() }
     val scope = rememberCoroutineScope()
     var mediaItems by remember { mutableStateOf(null as List<Media>?) }
-
     LaunchedEffect(Unit) {
         mediaItems = dao.getAll().sortedByDescending { it.date }
     }
-
     val mediaPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris: List<android.net.Uri> ->
@@ -105,16 +105,13 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
             }
         }
     }
-
     var previewMedia by remember { mutableStateOf(null as Media?) }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
         ) {
-            // Dreamy Header
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -132,7 +129,6 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
             }
-
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 150.dp),
                 contentPadding = PaddingValues(16.dp),
@@ -149,8 +145,6 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                     }
                 }
             }
-
-            // Thematic Add Button
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -196,8 +190,6 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                 }
             }
         }
-
-        // Enhanced Preview Overlay
         AnimatedVisibility(
             visible = previewMedia != null,
             enter = fadeIn() + scaleIn(initialScale = 0.9f),
@@ -207,11 +199,9 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.9f))
-                        .clickable { previewMedia = null },
+                        .background(Color.Black.copy(alpha = 0.9f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Blurred background of the same image
                     Image(
                         painter = rememberAsyncImagePainter(media.uri.toUri()),
                         contentDescription = null,
@@ -219,31 +209,19 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                             .fillMaxSize()
                             .blur(20.dp),
                         contentScale = ContentScale.Crop,
-                        alpha = 0.3f
+                        alpha = 1f
                     )
-
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.padding(24.dp)
                     ) {
-                        Card(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .shadow(24.dp, RoundedCornerShape(32.dp)),
-                            shape = RoundedCornerShape(32.dp),
-                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
-                        ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(media.uri.toUri()),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Fit
-                            )
-                        }
-
+                        Image(
+                            painter = rememberAsyncImagePainter(media.uri.toUri()),
+                            contentDescription = null,
+                            modifier = Modifier.clip(RoundedCornerShape(32.dp)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))),
+                            contentScale = ContentScale.Fit
+                        )
                         Spacer(Modifier.height(24.dp))
-
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -257,7 +235,6 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                             ) {
                                 Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                             }
-
                             IconButton(
                                 onClick = {
                                     scope.launch {
