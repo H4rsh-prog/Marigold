@@ -1,4 +1,4 @@
-package com.example.marigold.model.Note
+package com.example.marigold.model.Memory
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -10,6 +10,8 @@ import com.example.marigold.model.Memory.Memory
 interface MemoryRoomDao {
     @Upsert(entity = Memory::class)
     suspend fun upsert(memory: Memory)
+    @Upsert(entity = Memory::class)
+    suspend fun upsertAll(memory: List<Memory>)
     @Delete(entity = Memory::class)
     suspend fun delete(memory: Memory)
     @Query("SELECT * FROM tbl_memories WHERE id = :id")
