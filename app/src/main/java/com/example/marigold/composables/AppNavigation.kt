@@ -28,7 +28,12 @@ import com.example.marigold.composables.DashboardComposables.ProfileTabs
 import com.example.marigold.composables.PreAuthComposables.DefineMarigold
 import com.example.marigold.composables.PreAuthComposables.SplashScreen
 import com.example.marigold.model.DB
+import com.example.marigold.model.Media.Media
+import com.example.marigold.model.Media.MediaRemoteDao
+import com.example.marigold.model.Memory.Memory
 import com.example.marigold.model.Memory.MemoryRemoteDao
+import com.example.marigold.model.Note.Note
+import com.example.marigold.model.Note.NoteRemoteDao
 import com.example.marigold.services.DataHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +43,10 @@ enum class NavigationIndx (val index : Int){
     SPLASH_SCREEN(-1),
     AUTH_SCREEN(0),
     NAV_SCREEN(1)
+}
+var AppContext : Context? = null
+fun setContext(context : Context) {
+    AppContext = context
 }
 @Composable
 fun AppNavigation(
@@ -56,6 +65,7 @@ fun AppNavigation(
             withContext(Dispatchers.IO) {
                 refreshDatabases(context)
             }
+            setContext(context)
         }
     }
 
@@ -109,11 +119,40 @@ fun AppNavigation(
     }
 }
 
-suspend public fun refreshDatabases(context : Context){
+suspend public fun refreshDatabases(context : Context, entity_type : Any? = null){
     val db = Room.databaseBuilder(
         context = context,
         klass = DB::class.java,
         name = DB.DB_NAME
     ).build()
-    db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
+    println("INITIATED REFRESHMENT")
+    if(entity_type != null) {
+        when(entity_type) {
+            Memory::class -> {
+                println("REFRESHING MEMORIES")
+                db.memoryDAO().deleteAll()
+                db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
+                println("REFRESHED MEMORIES")
+            }
+            Note::class -> {
+                println("REFRESHING JOURNAL")
+                db.noteDAO().deleteAll()
+                db.noteDAO().upsertAll(NoteRemoteDao().fetch())
+                println("REFRESHED JOURNAL")
+            }
+            Media::class -> {
+                println("REFRESHING MEDIA")
+                db.mediaDAO().deleteAll()
+                db.mediaDAO().upsertAll(MediaRemoteDao().fetch())
+                println("REFRESHED MEDIA")
+            }
+        }
+    } else {
+        println("REFRESHING ALL DATABASES")
+        db.clearAllTables()
+        db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
+        db.noteDAO().upsertAll(NoteRemoteDao().fetch())
+        db.mediaDAO().upsertAll(MediaRemoteDao().fetch())
+        println("REFRESHED ALL DATABASES")
+    }
 }

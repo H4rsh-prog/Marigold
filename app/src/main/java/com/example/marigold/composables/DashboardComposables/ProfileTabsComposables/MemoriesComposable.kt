@@ -1,6 +1,5 @@
 package com.example.marigold.composables.DashboardComposables.ProfileTabsComposables
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
@@ -8,7 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -63,9 +62,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.Room
+import com.example.marigold.composables.refreshDatabases
 import com.example.marigold.model.DB
 import com.example.marigold.model.Memory.Memory
-import com.example.marigold.model.Memory.MemoryRemoteDao
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -76,7 +75,6 @@ import java.util.Locale
 
 @Composable
 fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any> ) {
-    val remote = remember { MemoryRemoteDao() }
     val context = LocalContext.current
     val dao = remember {
         Room.databaseBuilder(
@@ -89,7 +87,6 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
     var memories by remember { mutableStateOf(emptyList<Memory>()) }
     var showcasedMemory by remember { mutableStateOf(null as Memory?) }
     var loaded by remember { mutableStateOf(false) }
-    var memorySwitch by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         memories = dao.getAll()
@@ -105,8 +102,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
         ) {
             AnimatedVisibility(
                 visible = loaded,
-                enter = scaleIn(),
-                exit = scaleOut()
+                enter = slideInVertically(animationSpec = tween(1000)) { -it }
             ) {
                 Button(
                     modifier = Modifier
@@ -163,8 +159,9 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                         onReload = {
                             scope.launch {
                                 withContext(Dispatchers.IO) {
-                                    memories = remote.fetch()
-                                    Toast.makeText(context, "Memories Refreshed", Toast.LENGTH_SHORT).show()
+                                    refreshDatabases(context, Memory::class)
+                                    memories = dao.getAll()
+                                    showcasedMemory = memories.random()
                                 }
 
                             }

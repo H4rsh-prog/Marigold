@@ -66,10 +66,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.Room
+import com.example.marigold.composables.refreshDatabases
 import com.example.marigold.model.DB
 import com.example.marigold.model.Note.Note
+import com.example.marigold.model.Note.NoteRemoteDao
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -78,14 +82,14 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>) {
     val context = LocalContext.current
-    val db = remember {
+    val dao = remember {
         Room.databaseBuilder(
             context = context,
             klass = DB::class.java,
             name = DB.DB_NAME
-        ).createFromAsset("databases/initMarigold.db").build()
+        ).build().noteDAO()
     }
-    val dao = remember { db.noteDAO() }
+    val remote = remember { NoteRemoteDao() }
     val scope = rememberCoroutineScope()
     var notes by remember { mutableStateOf(null as List<Note>?) }
     var newNote by remember { mutableStateOf(false) }
@@ -183,8 +187,14 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                             scope.launch {
                                                 deletingNoteId = note.id
                                                 dao.deleteById(note.id)
+                                                scope.launch {
+                                                    withContext(Dispatchers.IO) {
+                                                        remote.remove(note.id)
+                                                        refreshDatabases(context, Note::class)
+                                                        notes = dao.getAll().sortedByDescending { it.date }
+                                                    }
+                                                }
                                                 delay(400)
-                                                notes = dao.getAll().sortedByDescending { it.date }
                                                 selectedNote = null
                                                 deletingNoteId = null
                                             }
@@ -306,12 +316,19 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                         onClick = {
                             if (title.isNotBlank() || content.isNotBlank()) {
                                 scope.launch {
-                                    if (updateNote) {
-                                        dao.upsert(Note(id = selectedNote!!.id, title = title, content = content))
-                                    } else {
-                                        dao.upsert(Note(title = title, content = content))
+                                    var FORM_NOTE : Note
+                                    withContext(Dispatchers.IO) {
+                                        if (updateNote) {
+                                            FORM_NOTE = Note(id = selectedNote!!.id, title = title, content = content)
+                                            remote.update(FORM_NOTE)
+                                        } else {
+                                            FORM_NOTE = Note(title = title, content = content)
+                                            remote.add(FORM_NOTE)
+                                        }
+                                        dao.upsert(FORM_NOTE)
+                                        refreshDatabases(context, Note::class)
+                                        notes = dao.getAll().sortedByDescending { it.date }
                                     }
-                                    notes = dao.getAll().sortedByDescending { it.date }
                                     newNote = false
                                     updateNote = false
                                     selectedNote = null
