@@ -6,6 +6,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -30,7 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -70,6 +71,7 @@ import androidx.room.Room
 import coil.compose.rememberAsyncImagePainter
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Media
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -86,8 +88,11 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     val dao = remember { db.mediaDAO() }
     val scope = rememberCoroutineScope()
     var mediaItems by remember { mutableStateOf(null as List<Media>?) }
+    var loaded by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         mediaItems = dao.getAll().sortedByDescending { it.date }
+        delay(200)
+        loaded = true
     }
     val mediaPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -106,148 +111,164 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
         }
     }
     var previewMedia by remember { mutableStateOf(null as Media?) }
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
-        ) {
+    AnimatedVisibility(
+        visible = loaded,
+        enter = fadeIn() + scaleIn(initialScale = 0.8f),
+        exit = fadeOut() + scaleOut(targetScale = 0.8f)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
             ) {
-                Text(
-                    text = "Gallery of Moments",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "${mediaItems?.size ?: 0} memories captured",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
-            }
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(minSize = 150.dp),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                mediaItems?.let { items ->
-                    items(items) { media ->
-                        MediaThumbnail(
-                            media = media,
-                            onClick = { previewMedia = media }
-                        )
-                    }
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Button(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
-                        .shadow(8.dp, RoundedCornerShape(20.dp)),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                    contentPadding = PaddingValues(),
-                    onClick = {
-                        mediaPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    }
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(
-                                        MaterialTheme.colorScheme.primary,
-                                        MaterialTheme.colorScheme.tertiary
-                                    )
+                    Text(
+                        text = "Gallery of Moments",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${mediaItems?.size ?: 0} memories captured",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    var itemsLoaded by mutableStateOf(false)
+                    scope.launch {
+                        delay(300)
+                        itemsLoaded = true
+                    }
+                    mediaItems?.let { items ->
+                        itemsIndexed(items) { index, media ->
+                            AnimatedVisibility(
+                                visible = itemsLoaded,
+                                enter = scaleIn(animationSpec = tween(600, index * 80)) + fadeIn()
+                            ) {
+                                MediaThumbnail(
+                                    media = media,
+                                    onClick = { previewMedia = media }
                                 )
-                            ),
-                        contentAlignment = Alignment.Center
+                            }
+                        }
+                    }
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .shadow(8.dp, RoundedCornerShape(20.dp)),
+                        shape = RoundedCornerShape(20.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                        contentPadding = PaddingValues(),
+                        onClick = {
+                            mediaPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        }
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Color.White)
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                "CAPTURE A MOMENT",
-                                fontWeight = FontWeight.ExtraBold,
-                                letterSpacing = 1.sp,
-                                color = Color.White
-                            )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            MaterialTheme.colorScheme.primary,
+                                            MaterialTheme.colorScheme.tertiary
+                                        )
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.AddPhotoAlternate, contentDescription = null, tint = Color.White)
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    "CAPTURE A MOMENT",
+                                    fontWeight = FontWeight.ExtraBold,
+                                    letterSpacing = 1.sp,
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
-        AnimatedVisibility(
-            visible = previewMedia != null,
-            enter = fadeIn() + scaleIn(initialScale = 0.9f),
-            exit = fadeOut() + scaleOut(targetScale = 0.9f)
-        ) {
-            previewMedia?.let { media ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.9f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(media.uri.toUri()),
-                        contentDescription = null,
+            AnimatedVisibility(
+                visible = previewMedia != null,
+                enter = fadeIn() + scaleIn(initialScale = 0.9f),
+                exit = fadeOut() + scaleOut(targetScale = 0.9f)
+            ) {
+                previewMedia?.let { media ->
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .blur(20.dp),
-                        contentScale = ContentScale.Crop,
-                        alpha = 1f
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(24.dp)
+                            .background(Color.Black.copy(alpha = 0.9f)),
+                        contentAlignment = Alignment.Center
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(media.uri.toUri()),
                             contentDescription = null,
-                            modifier = Modifier.clip(RoundedCornerShape(32.dp)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))),
-                            contentScale = ContentScale.Fit
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .blur(20.dp),
+                            contentScale = ContentScale.Crop,
+                            alpha = 1f
                         )
-                        Spacer(Modifier.height(24.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
                         ) {
-                            IconButton(
-                                onClick = { previewMedia = null },
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .background(Color.White.copy(alpha = 0.1f), CircleShape)
+                            Image(
+                                painter = rememberAsyncImagePainter(media.uri.toUri()),
+                                contentDescription = null,
+                                modifier = Modifier.clip(RoundedCornerShape(32.dp)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))),
+                                contentScale = ContentScale.Fit
+                            )
+                            Spacer(Modifier.height(24.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                            }
-                            IconButton(
-                                onClick = {
-                                    scope.launch {
-                                        dao.deleteById(media.id)
-                                        mediaItems = dao.getAll().sortedByDescending { it.date }
-                                        previewMedia = null
-                                    }
-                                },
-                                modifier = Modifier
-                                    .size(64.dp)
-                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f), CircleShape)
-                            ) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                                IconButton(
+                                    onClick = { previewMedia = null },
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .background(Color.White.copy(alpha = 0.1f), CircleShape)
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                                }
+                                IconButton(
+                                    onClick = {
+                                        scope.launch {
+                                            dao.deleteById(media.id)
+                                            mediaItems = dao.getAll().sortedByDescending { it.date }
+                                            previewMedia = null
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .size(64.dp)
+                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f), CircleShape)
+                                ) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                                }
                             }
                         }
                     }
