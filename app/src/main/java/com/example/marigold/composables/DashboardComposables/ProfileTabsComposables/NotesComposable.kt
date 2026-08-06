@@ -80,9 +80,9 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     val context = LocalContext.current
     val db = remember {
         Room.databaseBuilder(
-            context,
-            DB::class.java,
-            "marigold_db"
+            context = context,
+            klass = DB::class.java,
+            name = DB.DB_NAME
         ).createFromAsset("databases/initMarigold.db").build()
     }
     val dao = remember { db.noteDAO() }
@@ -101,7 +101,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
         delay(800)
         loaded = true
     }
-    val paperColor = Color(0xFFFFF9E6) // Classic parchment color
+    val paperColor = Color(0xFFFFF9E6)
     val scrollEdgeBrush = Brush.verticalGradient(
         listOf(
             MaterialTheme.colorScheme.tertiary.copy(alpha = 0.8f),

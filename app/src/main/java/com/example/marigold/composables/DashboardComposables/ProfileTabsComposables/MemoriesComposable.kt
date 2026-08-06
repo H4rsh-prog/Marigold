@@ -4,8 +4,12 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -78,16 +82,18 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
         Room.databaseBuilder(
             context = context,
             klass = DB::class.java,
-            name = "marigold_db"
+            name = DB.DB_NAME
         ).build().memoryDAO()
     }
     val scope = rememberCoroutineScope()
-    var memories by remember { mutableStateOf(scope.launch { dao.getAll() }) }
+    var memories by remember { mutableStateOf(emptyList<Memory>()) }
     var showcasedMemory by remember { mutableStateOf(null as Memory?) }
     var loaded by remember { mutableStateOf(false) }
     var memorySwitch by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
+        memories = dao.getAll()
+        showcasedMemory = memories.random()
         delay(300)
         loaded = true
     }
@@ -97,39 +103,6 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            AnimatedContent(
-                targetState = showcasedMemory,
-                label = "CoreMemoryShowcase",
-                transitionSpec = {
-                    ContentTransform(
-                        targetContentEnter = scaleIn(),
-                        initialContentExit = scaleOut()
-                    )
-                }
-            ) {
-                if (it != null) {
-                    CoreMemoryShowcase(
-                        memory = showcasedMemory!!,
-                        onReload = {
-                            scope.launch {
-                                withContext(Dispatchers.IO) {
-                                    memories = remote.fetch()
-                                    Toast.makeText(context, "Memories Refreshed", Toast.LENGTH_SHORT).show()
-                                }
-
-                            }
-                        },
-                        switchFlag = memorySwitch
-                    )
-                } else {
-                    Text(
-                        "Cant Remember Anything...",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.Gray
-                    )
-                }
-            }
-            Spacer(Modifier.height(24.dp))
             AnimatedVisibility(
                 visible = loaded,
                 enter = scaleIn(),
@@ -146,11 +119,8 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                     onClick = {
                         scope.launch {
                             if (memories.isNotEmpty()) {
-                                memorySwitch = true
-                                delay(1000)
                                 val remainingMemories = memories.filter { memory -> memory != showcasedMemory }
                                 showcasedMemory = if(remainingMemories.isNotEmpty()) { remainingMemories.random() } else { showcasedMemory }
-                                memorySwitch = false
                             }
                         }
                     }
@@ -171,9 +141,42 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = Color.White)
                             Spacer(Modifier.width(12.dp))
-                            Text("TRY TO RECALL SOMETHING", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp, color = Color.White)
+                            Text("TRY TO RECALL SOMETHING ELSE", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp, color = Color.White)
                         }
                     }
+                }
+            }
+            AnimatedContent(
+                targetState = showcasedMemory,
+                label = "CoreMemoryShowcase",
+                transitionSpec = {
+                    ContentTransform(
+                        targetContentEnter = scaleIn(animationSpec = tween(1000)) + fadeIn(animationSpec = tween(500)),
+                        initialContentExit = slideOutVertically{-it} + fadeOut(animationSpec = tween(500))
+                    )
+                }
+            ) {
+                if (it != null) {
+                    loaded = true
+                    CoreMemoryShowcase(
+                        memory = it,
+                        onReload = {
+                            scope.launch {
+                                withContext(Dispatchers.IO) {
+                                    memories = remote.fetch()
+                                    Toast.makeText(context, "Memories Refreshed", Toast.LENGTH_SHORT).show()
+                                }
+
+                            }
+                        }
+                    )
+                } else {
+                    loaded = false
+                    Text(
+                        "Cant Remember Anything...",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.Gray
+                    )
                 }
             }
         }
@@ -183,8 +186,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
 @Composable
 fun CoreMemoryShowcase(
     memory: Memory,
-    onReload: () -> Unit,
-    switchFlag : Boolean
+    onReload: () -> Unit
 ) {
     val marigoldThemeGradient = Brush.verticalGradient(
         colors = listOf(
@@ -226,19 +228,12 @@ fun CoreMemoryShowcase(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    AnimatedVisibility(
-                        visible = switchFlag,
-                        enter = scaleIn(),
-                        exit = scaleOut()
-                    ) {
-                        Text(
-                            text = SimpleDateFormat("MMMM dd, yyyy, HH:mm", Locale.getDefault()).format(Date(memory.date)),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp
-                        )
-                    }
+                    Text(
+                        text = SimpleDateFormat("MMMM dd, yyyy, HH:mm", Locale.getDefault()).format(Date(memory.date)),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        letterSpacing = 1.sp
+                    )
                     IconButton(
                         onClick = onReload,
                         modifier = Modifier
@@ -254,42 +249,37 @@ fun CoreMemoryShowcase(
                         )
                     }
                 }
-                Spacer(Modifier.height(32.dp))
-                AnimatedVisibility(
-                    visible = switchFlag,
-                    enter = scaleIn(),
-                    exit = scaleOut()
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = "“",
-                            fontFamily = FontFamily.Cursive,
-                            fontSize = 100.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .offset(x = (-16).dp, y = (-40).dp)
-                        )
-                        Text(
-                            text = memory.memory,
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(horizontal = 8.dp).height(400.dp)
-                                .verticalScroll(rememberScrollState())
-                        )
-                        Text(
-                            text = "”",
-                            fontFamily = FontFamily.Cursive,
-                            fontSize = 100.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .offset(x = 0.dp, y = 100.dp)
-                        )
-                    }
+                Spacer(Modifier.height(60.dp))
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = "“",
+                        fontFamily = FontFamily.Cursive,
+                        fontSize = 100.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .offset(x = (-16).dp, y = (-40).dp)
+                    )
+                    Text(
+                        text = memory.memory,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp).height(400.dp)
+                            .verticalScroll(rememberScrollState())
+                    )
+                    Text(
+                        text = "”",
+                        fontFamily = FontFamily.Cursive,
+                        fontSize = 100.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(x = 0.dp, y = 100.dp)
+                    )
                 }
-                Spacer(Modifier.height(40.dp))
+                Spacer(Modifier.height(20.dp))
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.example.marigold.composables
 
+import android.content.Context
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
@@ -16,15 +17,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.room.Room
 import com.example.marigold.composables.DashboardComposables.HomeScreen
 import com.example.marigold.composables.DashboardComposables.ProfileTabs
 import com.example.marigold.composables.PreAuthComposables.DefineMarigold
 import com.example.marigold.composables.PreAuthComposables.SplashScreen
+import com.example.marigold.model.DB
+import com.example.marigold.model.Memory.MemoryRemoteDao
 import com.example.marigold.services.DataHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class NavigationIndx (val index : Int){
     SPLASH_SCREEN(-1),
@@ -41,6 +49,15 @@ fun AppNavigation(
     var navIndx by remember { mutableStateOf(overrideNavIndx) }
     var prevNavIndx by remember {mutableStateOf(overrideNavIndx)}
     val overrideNavigationIndx : (NavigationIndx) -> Unit = { destination -> navIndx = destination.index }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    remember {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                refreshDatabases(context)
+            }
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         AnimatedContent(
@@ -90,4 +107,13 @@ fun AppNavigation(
             }
         }
     }
+}
+
+suspend public fun refreshDatabases(context : Context){
+    val db = Room.databaseBuilder(
+        context = context,
+        klass = DB::class.java,
+        name = DB.DB_NAME
+    ).build()
+    db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
 }
