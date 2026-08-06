@@ -1,7 +1,6 @@
 package com.example.marigold.composables.DashboardComposables
 
 import android.annotation.SuppressLint
-import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
@@ -42,11 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
-import androidx.room.Room
 import com.example.marigold.R
 import com.example.marigold.composables.NavigationIndx
-import com.example.marigold.model.DB
-import com.example.marigold.model.Memory.MemoryRemoteDao
 import com.example.marigold.services.DataHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -60,13 +56,13 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
     val backStack = remember { mutableStateListOf<Any>(profile) }
     val context = LocalContext.current
     val dataHandler = DataHandler(context)
+    val scope = rememberCoroutineScope()
     remember {
         if(overrideProfileTabs!=null) {
             backStack.add(overrideProfileTabs)
         }
         backStack.add(0,splash)
     }
-    val scope = rememberCoroutineScope()
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
@@ -203,7 +199,6 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                     }
                 }
                 is ProfileTabs -> {
-                    scope.launch { refreshDatabases(context = context) }
                     NavEntry(key) {
                         key.content.invoke({backStack.removeLastOrNull()}, backStack)
                     }
@@ -215,13 +210,4 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
             }
         }
     )
-}
-
-suspend fun refreshDatabases(context : Context){
-    val db = Room.databaseBuilder(
-        context = context,
-        klass = DB::class.java,
-        "marigold_db"
-    ).build()
-    db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
 }

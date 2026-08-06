@@ -1,5 +1,6 @@
 package com.example.marigold.composables
 
+import android.content.Context
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
@@ -16,20 +17,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
+import androidx.room.Room
 import com.example.marigold.composables.DashboardComposables.HomeScreen
 import com.example.marigold.composables.DashboardComposables.ProfileTabs
 import com.example.marigold.composables.PreAuthComposables.DefineMarigold
 import com.example.marigold.composables.PreAuthComposables.SplashScreen
+import com.example.marigold.model.DB
+import com.example.marigold.model.Media.Media
+import com.example.marigold.model.Media.MediaRemoteDao
+import com.example.marigold.model.Memory.Memory
+import com.example.marigold.model.Memory.MemoryRemoteDao
+import com.example.marigold.model.Note.Note
+import com.example.marigold.model.Note.NoteRemoteDao
 import com.example.marigold.services.DataHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class NavigationIndx (val index : Int){
     SPLASH_SCREEN(-1),
     AUTH_SCREEN(0),
     NAV_SCREEN(1)
+}
+var AppContext : Context? = null
+fun setContext(context : Context) {
+    AppContext = context
 }
 @Composable
 fun AppNavigation(
@@ -41,6 +58,16 @@ fun AppNavigation(
     var navIndx by remember { mutableStateOf(overrideNavIndx) }
     var prevNavIndx by remember {mutableStateOf(overrideNavIndx)}
     val overrideNavigationIndx : (NavigationIndx) -> Unit = { destination -> navIndx = destination.index }
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    remember {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                refreshDatabases(context)
+            }
+            setContext(context)
+        }
+    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         AnimatedContent(
@@ -89,5 +116,43 @@ fun AppNavigation(
                     }
             }
         }
+    }
+}
+
+suspend public fun refreshDatabases(context : Context, entity_type : Any? = null){
+    val db = Room.databaseBuilder(
+        context = context,
+        klass = DB::class.java,
+        name = DB.DB_NAME
+    ).build()
+    println("INITIATED REFRESHMENT")
+    if(entity_type != null) {
+        when(entity_type) {
+            Memory::class -> {
+                println("REFRESHING MEMORIES")
+                db.memoryDAO().deleteAll()
+                db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
+                println("REFRESHED MEMORIES")
+            }
+            Note::class -> {
+                println("REFRESHING JOURNAL")
+                db.noteDAO().deleteAll()
+                db.noteDAO().upsertAll(NoteRemoteDao().fetch())
+                println("REFRESHED JOURNAL")
+            }
+            Media::class -> {
+                println("REFRESHING MEDIA")
+                db.mediaDAO().deleteAll()
+                db.mediaDAO().upsertAll(MediaRemoteDao().fetch())
+                println("REFRESHED MEDIA")
+            }
+        }
+    } else {
+        println("REFRESHING ALL DATABASES")
+        db.clearAllTables()
+        db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
+        db.noteDAO().upsertAll(NoteRemoteDao().fetch())
+        db.mediaDAO().upsertAll(MediaRemoteDao().fetch())
+        println("REFRESHED ALL DATABASES")
     }
 }

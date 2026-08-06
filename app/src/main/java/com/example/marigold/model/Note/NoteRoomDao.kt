@@ -9,6 +9,8 @@ import androidx.room.Upsert
 interface NoteRoomDao {
     @Upsert(entity = Note::class)
     suspend fun upsert(note: Note)
+    @Upsert(entity = Note::class)
+    suspend fun upsertAll(note: List<Note>)
     @Delete(entity = Note::class)
     suspend fun delete(note: Note)
     @Query("SELECT * FROM tbl_notes WHERE id = :id")

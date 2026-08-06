@@ -15,7 +15,9 @@ import com.example.marigold.model.Note.NoteRoomDao
     exportSchema = true
 )
 abstract class DB : RoomDatabase() {
-
+    companion object {
+        val DB_NAME = "marigold_db"
+    }
     abstract fun noteDAO(): NoteRoomDao
     abstract fun mediaDAO(): MediaRoomDao
     abstract fun memoryDAO(): MemoryRoomDao

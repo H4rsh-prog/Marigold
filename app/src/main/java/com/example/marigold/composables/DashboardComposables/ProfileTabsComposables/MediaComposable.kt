@@ -82,7 +82,7 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
         Room.databaseBuilder(
             context = context,
             klass = DB::class.java,
-            name = "marigold_db"
+            name = DB.DB_NAME
         ).createFromAsset("databases/initMarigold.db").build()
     }
     val dao = remember { db.mediaDAO() }

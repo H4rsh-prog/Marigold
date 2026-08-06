@@ -9,6 +9,8 @@ import androidx.room.Upsert
 interface MediaRoomDao {
     @Upsert(entity = Media::class)
     suspend fun upsert(media: Media)
+    @Upsert(entity = Media::class)
+    suspend fun upsertAll(media: List<Media>)
     @Delete(entity = Media::class)
     suspend fun delete(media: Media)
     @Query("SELECT * FROM tbl_media WHERE id = :id")
