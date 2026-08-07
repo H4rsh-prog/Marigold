@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -95,9 +96,11 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     var newNote by remember { mutableStateOf(false) }
     var updateNote by remember { mutableStateOf(false) }
     var selectedNote by remember { mutableStateOf(null as Note?) }
+    var expandedNote by remember { mutableStateOf(null as Note?) }
     var loaded by remember { mutableStateOf(false) }
     var fell by remember { mutableStateOf(false) }
     var deletingNoteId by remember { mutableStateOf(null as String?) }
+    var listOfUpdatingNotes by remember { mutableStateOf(arrayListOf<Note>()) }
     LaunchedEffect(Unit) {
         delay(300)
         fell = true
@@ -175,9 +178,9 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                 ) {
                                     NoteItem(
                                         note = note,
-                                        isSelected = selectedNote == note,
+                                        isExpanded = expandedNote == note,
                                         onToggle = {
-                                            selectedNote = if (selectedNote == note) null else note
+                                            expandedNote = if (expandedNote == note) null else note
                                         },
                                         onEdit = {
                                             selectedNote = note
@@ -187,18 +190,18 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                             scope.launch {
                                                 deletingNoteId = note.id
                                                 dao.deleteById(note.id)
+                                                notes = dao.getAll().sortedByDescending { it.date }
                                                 scope.launch {
                                                     withContext(Dispatchers.IO) {
                                                         remote.remove(note.id)
                                                         refreshDatabases(context, Note::class)
-                                                        notes = dao.getAll().sortedByDescending { it.date }
                                                     }
                                                 }
-                                                delay(400)
                                                 selectedNote = null
                                                 deletingNoteId = null
                                             }
-                                        }
+                                        },
+                                        updatingNotes = listOfUpdatingNotes
                                     )
                                 }
                                 Spacer(Modifier.height(16.dp))
@@ -318,20 +321,26 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                 scope.launch {
                                     var FORM_NOTE : Note
                                     withContext(Dispatchers.IO) {
-                                        if (updateNote) {
-                                            FORM_NOTE = Note(id = selectedNote!!.id, title = title, content = content)
-                                            remote.update(FORM_NOTE)
+                                        if (selectedNote!=null) {
+                                            FORM_NOTE = Note(selectedNote!!.id, title, content, selectedNote!!.date)
                                         } else {
                                             FORM_NOTE = Note(title = title, content = content)
+                                        }
+                                        selectedNote = FORM_NOTE
+                                        listOfUpdatingNotes.add(selectedNote!!)
+                                        dao.upsert(FORM_NOTE)
+                                        newNote = false
+                                        updateNote = false
+                                        notes = dao.getAll().sortedByDescending { it.date }
+                                        if (FORM_NOTE!=null) {
+                                            remote.update(FORM_NOTE)
+                                        } else {
                                             remote.add(FORM_NOTE)
                                         }
-                                        dao.upsert(FORM_NOTE)
                                         refreshDatabases(context, Note::class)
-                                        notes = dao.getAll().sortedByDescending { it.date }
+                                        listOfUpdatingNotes = listOfUpdatingNotes.filter { note -> note.id!=selectedNote!!.id } as ArrayList<Note>
+                                        selectedNote = null
                                     }
-                                    newNote = false
-                                    updateNote = false
-                                    selectedNote = null
                                 }
                             }
                         },
@@ -348,25 +357,33 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
 @Composable
 fun NoteItem(
     note: Note,
-    isSelected: Boolean,
+    isExpanded: Boolean,
     onToggle: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    updatingNotes: ArrayList<Note>
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(if (isSelected) 8.dp else 2.dp, RoundedCornerShape(12.dp))
+            .shadow(if (isExpanded) 8.dp else 2.dp, RoundedCornerShape(12.dp))
             .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
             .border(
-                if (isSelected) 2.dp else 1.dp,
-                if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray.copy(alpha = 0.5f),
+                if (isExpanded) 2.dp else 1.dp,
+                if (isExpanded) MaterialTheme.colorScheme.primary else Color.LightGray.copy(alpha = 0.5f),
                 RoundedCornerShape(12.dp)
             )
             .clickable(onClick = onToggle)
             .padding(16.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            AnimatedVisibility(
+                visible = updatingNotes.contains(note),
+                enter = scaleIn() + fadeIn(),
+                exit = scaleOut() + fadeOut()
+            ) {
+                Icon(Icons.Default.Upload, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
+            }
             Text(
                 text = note.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -382,7 +399,7 @@ fun NoteItem(
             }
         }
         AnimatedVisibility(
-            visible = isSelected,
+            visible = isExpanded,
             enter = expandVertically() + fadeIn(),
             exit = shrinkVertically() + fadeOut()
         ) {

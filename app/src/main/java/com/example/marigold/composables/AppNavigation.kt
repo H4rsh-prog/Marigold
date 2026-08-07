@@ -1,6 +1,9 @@
 package com.example.marigold.composables
 
+import android.app.Activity
 import android.content.Context
+import android.os.Looper
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
@@ -21,7 +24,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
 import androidx.room.Room
 import com.example.marigold.composables.DashboardComposables.HomeScreen
 import com.example.marigold.composables.DashboardComposables.ProfileTabs
@@ -35,6 +37,7 @@ import com.example.marigold.model.Memory.MemoryRemoteDao
 import com.example.marigold.model.Note.Note
 import com.example.marigold.model.Note.NoteRemoteDao
 import com.example.marigold.services.DataHandler
+import com.example.marigold.services.RemoteSQLHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -44,28 +47,23 @@ enum class NavigationIndx (val index : Int){
     AUTH_SCREEN(0),
     NAV_SCREEN(1)
 }
-var AppContext : Context? = null
-fun setContext(context : Context) {
-    AppContext = context
-}
 @Composable
 fun AppNavigation(
+    activity : Activity,
     overrideNavIndx: Int = NavigationIndx.SPLASH_SCREEN.index,
     overrideProfileTabs: ProfileTabs? = null,
     onAuthenticate: (() -> Unit) -> Unit = { it() },
-    dataHandler: DataHandler = DataHandler(LocalContext.current)
+    dataHandler: DataHandler = DataHandler(activity)
 ) {
     var navIndx by remember { mutableStateOf(overrideNavIndx) }
     var prevNavIndx by remember {mutableStateOf(overrideNavIndx)}
     val overrideNavigationIndx : (NavigationIndx) -> Unit = { destination -> navIndx = destination.index }
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     remember {
         scope.launch {
             withContext(Dispatchers.IO) {
-                refreshDatabases(context)
+                refreshDatabases(activity)
             }
-            setContext(context)
         }
     }
 
@@ -125,6 +123,11 @@ suspend public fun refreshDatabases(context : Context, entity_type : Any? = null
         klass = DB::class.java,
         name = DB.DB_NAME
     ).build()
+    if(Looper.myLooper()==null) Looper.prepare()
+    if(RemoteSQLHandler().getSQLConnection()==null) {
+        Toast.makeText(context, "Databases couldn't be refreshed due to some connectivity issues", Toast.LENGTH_SHORT).show()
+        return
+    }
     println("INITIATED REFRESHMENT")
     if(entity_type != null) {
         when(entity_type) {
@@ -133,23 +136,27 @@ suspend public fun refreshDatabases(context : Context, entity_type : Any? = null
                 db.memoryDAO().deleteAll()
                 db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
                 println("REFRESHED MEMORIES")
+                Toast.makeText(context, "Memories Refreshed", Toast.LENGTH_SHORT).show()
             }
             Note::class -> {
                 println("REFRESHING JOURNAL")
                 db.noteDAO().deleteAll()
                 db.noteDAO().upsertAll(NoteRemoteDao().fetch())
                 println("REFRESHED JOURNAL")
+                Toast.makeText(context, "Notes Refreshed", Toast.LENGTH_SHORT).show()
             }
             Media::class -> {
                 println("REFRESHING MEDIA")
-                db.mediaDAO().deleteAll()
+//                db.mediaDAO().deleteAll()
                 db.mediaDAO().upsertAll(MediaRemoteDao().fetch())
                 println("REFRESHED MEDIA")
+                Toast.makeText(context, "Media Refreshed", Toast.LENGTH_SHORT).show()
             }
         }
     } else {
         println("REFRESHING ALL DATABASES")
-        db.clearAllTables()
+        db.noteDAO().deleteAll()
+        db.memoryDAO().deleteAll()
         db.memoryDAO().upsertAll(MemoryRemoteDao().fetch())
         db.noteDAO().upsertAll(NoteRemoteDao().fetch())
         db.mediaDAO().upsertAll(MediaRemoteDao().fetch())
