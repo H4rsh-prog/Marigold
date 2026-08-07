@@ -321,7 +321,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                 scope.launch {
                                     var FORM_NOTE : Note
                                     withContext(Dispatchers.IO) {
-                                        if (selectedNote!=null) {
+                                        if (updateNote) {
                                             FORM_NOTE = Note(selectedNote!!.id, title, content, selectedNote!!.date)
                                         } else {
                                             FORM_NOTE = Note(title = title, content = content)
@@ -329,10 +329,11 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                         selectedNote = FORM_NOTE
                                         listOfUpdatingNotes.add(selectedNote!!)
                                         dao.upsert(FORM_NOTE)
-                                        newNote = false
-                                        updateNote = false
                                         notes = dao.getAll().sortedByDescending { it.date }
-                                        if (FORM_NOTE!=null) {
+                                        newNote = false
+                                        val updateRef = updateNote
+                                        updateNote = false
+                                        if (updateRef) {
                                             remote.update(FORM_NOTE)
                                         } else {
                                             remote.add(FORM_NOTE)
