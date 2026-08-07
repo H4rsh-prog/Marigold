@@ -1,6 +1,6 @@
 package com.example.marigold.model
 
-import com.example.marigold.services.remoteSQLHandler
+import com.example.marigold.services.RemoteSQLHandler
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.sql.Connection
@@ -10,7 +10,7 @@ open class RemoteDao<clazz, pk_type> (
     var ENTITY_TYPE : Class<clazz>,
     var PK_NAME : String = "id"
 ) {
-    protected fun getConnection(): Connection? = remoteSQLHandler().getSQLConnection()
+    protected fun getConnection(): Connection? = RemoteSQLHandler().getSQLConnection()
     //HELPER FUNCTION TO RFILTER SYNTHETIC AND STATIC FIELDS OF KOTLIN
     private fun getPersistentFields(cls: Class<*>): List<Field> {
         return cls.declaredFields.filter { field ->
