@@ -261,6 +261,7 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                 IconButton(
                                     onClick = {
                                         scope.launch {
+                                            println(Appwrite.deleteFile(media.id))
                                             dao.deleteById(media.id)
                                             mediaItems = dao.getAll().sortedByDescending { it.date }
                                             previewMedia = null
