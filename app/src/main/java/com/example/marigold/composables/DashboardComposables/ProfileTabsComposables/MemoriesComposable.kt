@@ -115,8 +115,8 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                     onClick = {
                         scope.launch {
                             if (memories.isNotEmpty()) {
-                                val remainingMemories = memories.filter { memory -> memory != showcasedMemory }
-                                showcasedMemory = if(remainingMemories.isNotEmpty()) { remainingMemories.random() } else { showcasedMemory }
+                                memories = memories.filter { memory -> memory != showcasedMemory }
+                                showcasedMemory = if(memories.isNotEmpty()) { memories.random() } else { showcasedMemory }
                             }
                         }
                     }
@@ -137,7 +137,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = Color.White)
                             Spacer(Modifier.width(12.dp))
-                            Text("TRY TO RECALL SOMETHING ELSE", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp, color = Color.White)
+                            Text("TRY TO RECALL SOMETHING ELSE (${memories.size})", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp, color = Color.White)
                         }
                     }
                 }
