@@ -66,10 +66,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.room.Room
 import coil.compose.rememberAsyncImagePainter
 import com.example.marigold.model.DB
+import com.example.marigold.model.Media.Appwrite
 import com.example.marigold.model.Media.Media
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -79,6 +79,7 @@ import kotlinx.coroutines.launch
 fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>) {
     val context = LocalContext.current
     val db = remember {
+        Appwrite.init(context)
         Room.databaseBuilder(
             context = context,
             klass = DB::class.java,
@@ -104,7 +105,9 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                         uri,
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
-                    dao.upsert(Media(uri = uri.toString()))
+                    val response = Appwrite.storeFile(context, uri)
+                    println(response)
+                    dao.upsert(Media(id = response.id))
                 }
                 mediaItems = dao.getAll().sortedByDescending { it.date }
             }
@@ -223,7 +226,7 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(media.uri.toUri()),
+                            painter = rememberAsyncImagePainter(Appwrite.getFileCDN(media.id)),
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxSize()
@@ -236,7 +239,7 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                             modifier = Modifier.padding(24.dp)
                         ) {
                             Image(
-                                painter = rememberAsyncImagePainter(media.uri.toUri()),
+                                painter = rememberAsyncImagePainter(Appwrite.getFileCDN(media.id)),
                                 contentDescription = null,
                                 modifier = Modifier.clip(RoundedCornerShape(32.dp)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))),
                                 contentScale = ContentScale.Fit
@@ -258,6 +261,7 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                                 IconButton(
                                     onClick = {
                                         scope.launch {
+                                            println(Appwrite.deleteFile(media.id))
                                             dao.deleteById(media.id)
                                             mediaItems = dao.getAll().sortedByDescending { it.date }
                                             previewMedia = null
@@ -290,7 +294,7 @@ fun MediaThumbnail(media: Media, onClick: () -> Unit) {
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
     ) {
         Image(
-            painter = rememberAsyncImagePainter(media.uri.toUri()),
+            painter = rememberAsyncImagePainter(Appwrite.getFileCDN(media.id)),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop

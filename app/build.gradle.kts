@@ -106,4 +106,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.core)
     // Source: https://mvnrepository.com/artifact/mysql/mysql-connector-java
     implementation("mysql:mysql-connector-java:5.1.49")
+    // APPWRITE SDK FOR CDN STORAGE
+    implementation("io.appwrite:sdk-for-android:8.1.0")
+
 }

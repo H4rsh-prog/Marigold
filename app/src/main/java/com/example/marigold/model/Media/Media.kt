@@ -8,6 +8,5 @@ import java.util.UUID
 data class Media (
     @PrimaryKey
     var id : String = UUID.randomUUID().toString(),
-    var date : Long = System.currentTimeMillis(),
-    var uri : String = "",
+    var date : Long = System.currentTimeMillis()
 )
