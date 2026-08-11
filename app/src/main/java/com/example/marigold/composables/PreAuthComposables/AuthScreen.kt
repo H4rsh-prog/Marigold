@@ -1,6 +1,11 @@
 package com.example.marigold.composables.PreAuthComposables
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.marigold.BuildConfig
 import com.example.marigold.services.DataHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -93,6 +99,15 @@ fun DefineMarigold(
                         },
                         modifier = modifier.fillMaxSize()
                     )
+                    AnimatedVisibility(
+                        visible = DEFINE_MARIGOLD != BuildConfig.defineMarigold,
+                        enter = fadeIn(animationSpec = tween(1000, 3000)),
+                        exit = fadeOut(animationSpec = tween(1000, 3000))
+                    ) {
+                        Text(text = "forgot your marigold? try mine..", color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.clickable(enabled = true, onClick = {
+                            dataHandler.savePreference(dataHandler.DEFINE_MARIGOLD, BuildConfig.defineMarigold)
+                        }))
+                    }
                 }
             } else {
                 Text(
