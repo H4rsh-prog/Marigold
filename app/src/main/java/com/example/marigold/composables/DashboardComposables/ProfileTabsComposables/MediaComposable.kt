@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -334,7 +333,6 @@ fun PreviewMedia(revertProfile: () -> Unit, previewMedia: Media){
                     modifier = Modifier
                         .clip(RoundedCornerShape(32.dp))
                         .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), shape = RoundedCornerShape(32.dp))
-                        .fillMaxHeight(0.8f)
                         .fillMaxWidth(0.9f)
                         .graphicsLayer {
                             scaleX = scaleState
@@ -343,7 +341,7 @@ fun PreviewMedia(revertProfile: () -> Unit, previewMedia: Media){
                             translationY = offsetState.y
                         }
                         .transformable(transformState),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.FillWidth
 
                 )
                 Spacer(Modifier.height(24.dp))
