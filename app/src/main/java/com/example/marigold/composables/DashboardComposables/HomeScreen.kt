@@ -42,7 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.ui.NavDisplay
 import com.example.marigold.R
+import com.example.marigold.composables.DashboardComposables.ProfileTabsComposables.PreviewMedia
 import com.example.marigold.composables.NavigationIndx
+import com.example.marigold.model.Media.Media
 import com.example.marigold.services.DataHandler
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -201,6 +203,11 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                 is ProfileTabs -> {
                     NavEntry(key) {
                         key.content.invoke({backStack.removeLastOrNull()}, backStack)
+                    }
+                }
+                is Media -> {
+                    NavEntry(key) {
+                        PreviewMedia({backStack.removeLastOrNull()}, key)
                     }
                 }
                 is splash -> NavEntry(key) {
