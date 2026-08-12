@@ -8,12 +8,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import com.example.marigold.composables.AppNavigation
+import com.example.marigold.services.DataHandler
 import com.example.marigold.ui.theme.MarigoldTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        DataHandler(this).initialDefaults()
         setContent {
             MarigoldTheme {
                 val density = LocalDensity.current

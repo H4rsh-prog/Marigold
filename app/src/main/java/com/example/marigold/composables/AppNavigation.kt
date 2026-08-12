@@ -147,7 +147,7 @@ suspend public fun refreshDatabases(context : Context, entity_type : Any? = null
             }
             Media::class -> {
                 println("REFRESHING MEDIA")
-//                db.mediaDAO().deleteAll()
+                db.mediaDAO().deleteAll()
                 db.mediaDAO().upsertAll(MediaRemoteDao().fetch())
                 println("REFRESHED MEDIA")
                 Toast.makeText(context, "Media Refreshed", Toast.LENGTH_SHORT).show()

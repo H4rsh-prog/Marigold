@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -104,6 +105,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                 visible = loaded,
                 enter = slideInVertically(animationSpec = tween(1000)) { -it }
             ) {
+                Icon(painter = painterResource(com.example.marigold.R.drawable.ic_ornate_divider_minimal), contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f), modifier = Modifier.fillMaxWidth().height(70.dp).scale(scaleY = 1.3f, scaleX = 1.2f).offset(y = -60.dp))
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -137,7 +139,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.AddCircleOutline, contentDescription = null, tint = Color.White)
                             Spacer(Modifier.width(12.dp))
-                            Text("TRY TO RECALL SOMETHING ELSE (${memories.size})", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp, color = Color.White)
+                            Text("TRY TO RECALL SOMETHING ELSE (${(memories.size - 1).coerceAtLeast(0)})", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp, color = Color.White)
                         }
                     }
                 }
@@ -163,7 +165,6 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                                     memories = dao.getAll()
                                     showcasedMemory = memories.random()
                                 }
-
                             }
                         }
                     )
@@ -246,7 +247,8 @@ fun CoreMemoryShowcase(
                         )
                     }
                 }
-                Spacer(Modifier.height(60.dp))
+                Spacer(Modifier.height(40.dp))
+                Icon(painter = painterResource(com.example.marigold.R.drawable.ic_ornate_divider), contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f), modifier = Modifier.fillMaxWidth().height(70.dp).scale(scaleY = 1f, scaleX = 1.2f).offset(y = -10.dp))
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = "“",
@@ -276,7 +278,7 @@ fun CoreMemoryShowcase(
                             .offset(x = 0.dp, y = 100.dp)
                     )
                 }
-                Spacer(Modifier.height(20.dp))
+                Icon(painter = painterResource(com.example.marigold.R.drawable.ic_ornate_divider), contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f), modifier = Modifier.fillMaxWidth().height(70.dp).rotate(180f).scale(scaleY = 1.3f, scaleX = 1.5f).offset(y = -5.dp))
             }
         }
     }

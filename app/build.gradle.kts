@@ -33,7 +33,8 @@ android {
         buildConfigField("String", "dataSourcePort", "\"${env.getProperty("datasource.port")}\"")
         buildConfigField("String", "dataSourceDB", "\"${env.getProperty("datasource.db")}\"")
         buildConfigField("String", "dataSourceUsername", "\"${env.getProperty("datasource.username")}\"")
-        buildConfigField("String", "dataSourcePassword", "\"${env.getProperty("datasource.password")}\"");
+        buildConfigField("String", "dataSourcePassword", "\"${env.getProperty("datasource.password")}\"")
+        buildConfigField("String", "defineMarigold", "\"${env.getProperty("defaults.define")}\"")
     }
 }
 ksp {

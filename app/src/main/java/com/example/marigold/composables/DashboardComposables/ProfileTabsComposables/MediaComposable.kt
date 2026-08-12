@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -68,25 +69,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.room.Room
 import coil.compose.rememberAsyncImagePainter
+import com.example.marigold.composables.refreshDatabases
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Appwrite
 import com.example.marigold.model.Media.Media
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>) {
     val context = LocalContext.current
-    val db = remember {
+    val dao = remember {
         Appwrite.init(context)
         Room.databaseBuilder(
             context = context,
             klass = DB::class.java,
             name = DB.DB_NAME
-        ).createFromAsset("databases/initMarigold.db").build()
+        ).build().mediaDAO()
     }
-    val dao = remember { db.mediaDAO() }
     val scope = rememberCoroutineScope()
     var mediaItems by remember { mutableStateOf(null as List<Media>?) }
     var loaded by remember { mutableStateOf(false) }
@@ -106,7 +109,6 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
                     val response = Appwrite.storeFile(context, uri)
-                    println(response)
                     dao.upsert(Media(id = response.id))
                 }
                 mediaItems = dao.getAll().sortedByDescending { it.date }
@@ -136,11 +138,35 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = "${mediaItems?.size ?: 0} memories captured",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
+                    Row {
+                        Text(
+                            text = "${mediaItems?.size ?: 0} memories captured",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        refreshDatabases(context, Media::class)
+                                        mediaItems = dao.getAll()
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .size(44.dp)
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f), CircleShape)
+                        ) {
+                            Icon(
+                                Icons.Default.Refresh,
+                                contentDescription = "Reload",
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                    }
                 }
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(minSize = 150.dp),

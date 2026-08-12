@@ -103,7 +103,7 @@ fun HomeScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigati
                                 Column (modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                                     Spacer(Modifier.height(20.dp))
                                     Icon(painter = painterResource(R.drawable.lamare_della_mi_vita_trasparent), contentDescription = null)
-                                    Text(text = "Welcome Marigold", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium, modifier = modifier.fillMaxSize())
+                                    Text(text = "Welcome ${dataHandler.getPreference(dataHandler.DEFINE_MARIGOLD)}", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium, modifier = modifier.fillMaxSize())
                                 }
                             }
                         }
