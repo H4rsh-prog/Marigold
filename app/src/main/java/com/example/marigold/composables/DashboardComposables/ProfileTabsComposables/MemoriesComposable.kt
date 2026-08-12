@@ -95,7 +95,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
         delay(300)
         loaded = true
     }
-    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background.copy().copy(alpha = 0.5f)), verticalArrangement = Arrangement.Center) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -105,7 +105,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
                 visible = loaded,
                 enter = slideInVertically(animationSpec = tween(1000)) { -it }
             ) {
-                Icon(painter = painterResource(com.example.marigold.R.drawable.ic_ornate_divider_minimal), contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f), modifier = Modifier.fillMaxWidth().height(70.dp).scale(scaleY = 1.3f, scaleX = 1.2f).offset(y = -60.dp))
+                Icon(painter = painterResource(com.example.marigold.R.drawable.ic_ornate_divider_minimal), contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.75f), modifier = Modifier.fillMaxWidth().height(70.dp).scale(scaleY = 1.3f, scaleX = 1.2f).offset(y = -65.dp))
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()

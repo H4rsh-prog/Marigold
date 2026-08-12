@@ -1,6 +1,8 @@
 package com.example.marigold.composables.DashboardComposables.ProfileTabsComposables
 
 import android.content.Intent
+import android.os.Looper
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,8 +18,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -60,8 +65,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -78,9 +85,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+data object mediaInView
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>) {
+fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>, overridePreviewMedia: Media? = null) {
     val context = LocalContext.current
     val dao = remember {
         Appwrite.init(context)
@@ -115,7 +124,7 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
             }
         }
     }
-    var previewMedia by remember { mutableStateOf(null as Media?) }
+    var previewMedia by remember { mutableStateOf(overridePreviewMedia) }
     AnimatedVisibility(
         visible = loaded,
         enter = fadeIn() + scaleIn(initialScale = 0.8f),
@@ -188,7 +197,10 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                             ) {
                                 MediaThumbnail(
                                     media = media,
-                                    onClick = { previewMedia = media }
+                                    onClick = {
+                                        previewMedia = media
+                                        backStack.add(media)
+                                    }
                                 )
                             }
                         }
@@ -239,71 +251,6 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                     }
                 }
             }
-            AnimatedVisibility(
-                visible = previewMedia != null,
-                enter = fadeIn() + scaleIn(initialScale = 0.9f),
-                exit = fadeOut() + scaleOut(targetScale = 0.9f)
-            ) {
-                previewMedia?.let { media ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.9f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(Appwrite.getFileCDN(media.id)),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .blur(20.dp),
-                            contentScale = ContentScale.Crop,
-                            alpha = 1f
-                        )
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(24.dp)
-                        ) {
-                            Image(
-                                painter = rememberAsyncImagePainter(Appwrite.getFileCDN(media.id)),
-                                contentDescription = null,
-                                modifier = Modifier.clip(RoundedCornerShape(32.dp)).border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))),
-                                contentScale = ContentScale.Fit
-                            )
-                            Spacer(Modifier.height(24.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(
-                                    onClick = { previewMedia = null },
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .background(Color.White.copy(alpha = 0.1f), CircleShape)
-                                ) {
-                                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                                }
-                                IconButton(
-                                    onClick = {
-                                        scope.launch {
-                                            println(Appwrite.deleteFile(media.id))
-                                            dao.deleteById(media.id)
-                                            mediaItems = dao.getAll().sortedByDescending { it.date }
-                                            previewMedia = null
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .size(64.dp)
-                                        .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f), CircleShape)
-                                ) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -325,5 +272,108 @@ fun MediaThumbnail(media: Media, onClick: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
+    }
+}
+
+@Composable
+fun PreviewMedia(revertProfile: () -> Unit, previewMedia: Media){
+    if(Looper.myLooper()==null) Looper.prepare()
+    val context = LocalContext.current
+    val dao = remember {
+        Appwrite.init(context)
+        Room.databaseBuilder(
+            context = context,
+            klass = DB::class.java,
+            name = DB.DB_NAME
+        ).build().mediaDAO()
+    }
+    val scope = rememberCoroutineScope()
+    previewMedia.let { media ->
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(Appwrite.getFileCDN(media.id)),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(20.dp),
+                contentScale = ContentScale.Crop,
+                alpha = 1f
+            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
+                var scaleState by remember { mutableStateOf(1f) }
+                var offsetState by remember { mutableStateOf(Offset.Zero) }
+                val transformState = rememberTransformableState { zoomChange, panChange, rotationChange ->
+                    scaleState = (scaleState * zoomChange).coerceIn(1f, 5f)
+
+                    val extraWidth = (scaleState - 1) * this@BoxWithConstraints.constraints.maxWidth
+                    val extraHeight = (scaleState - 1) * this@BoxWithConstraints.constraints.maxHeight
+
+                    val maxX = extraWidth / 2
+                    val maxY = extraHeight / 2
+
+                    offsetState = offsetState.copy(
+                        x = (offsetState.x + scaleState * panChange.x).coerceIn(-maxX, maxX),
+                        y = (offsetState.y + scaleState * panChange.y).coerceIn(-maxY, maxY),
+                    )
+                }
+                Image(
+                    painter = rememberAsyncImagePainter(Appwrite.getFileCDN(media.id)),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(32.dp))
+                        .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)))
+                        .graphicsLayer {
+                            scaleX = scaleState
+                            scaleY = scaleState
+                            translationX = offsetState.x
+                            translationY = offsetState.y
+                        }
+                        .transformable(transformState),
+                    contentScale = ContentScale.Fit
+
+                )
+                Spacer(Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { revertProfile() },
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(Color.White.copy(alpha = 0.1f), CircleShape)
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    }
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                try {
+                                    Appwrite.deleteFile(media.id)
+                                    dao.deleteById(media.id)
+                                    revertProfile()
+                                } catch (ex : Exception) {
+                                    Toast.makeText(context, "Unable to Remove Media Due to Connectivity Issues", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .size(64.dp)
+                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.2f), CircleShape)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.White)
+                    }
+                }
+            }
+        }
     }
 }
