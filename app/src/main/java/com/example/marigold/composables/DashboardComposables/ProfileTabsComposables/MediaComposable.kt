@@ -123,7 +123,9 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                     )
                     val response = Appwrite.storeFile(context, uri)
                     val media = Media(id = response.id)
-                    remote.add(media)
+                    withContext(Dispatchers.IO) {
+                        remote.add(media)
+                    }
                     dao.upsert(media)
                 }
                 mediaItems = dao.getAll().sortedByDescending { it.date }
@@ -368,7 +370,9 @@ fun PreviewMedia(revertProfile: () -> Unit, previewMedia: Media){
                             scope.launch {
                                 try {
                                     Appwrite.deleteFile(media.id)
-                                    remote.remove(media.id)
+                                    withContext(Dispatchers.IO) {
+                                        remote.remove(media.id)
+                                    }
                                     dao.deleteById(media.id)
                                     revertProfile()
                                 } catch (ex : Exception) {
