@@ -66,6 +66,7 @@ import androidx.room.Room
 import com.example.marigold.composables.refreshDatabases
 import com.example.marigold.model.DB
 import com.example.marigold.model.Memory.Memory
+import com.example.marigold.ui.theme.darken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -95,7 +96,7 @@ fun MemoriesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<A
         delay(300)
         loaded = true
     }
-    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background.copy().copy(alpha = 0.5f)), verticalArrangement = Arrangement.Center) {
+    Column(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background.darken()), verticalArrangement = Arrangement.Center) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -71,6 +71,7 @@ import com.example.marigold.composables.refreshDatabases
 import com.example.marigold.model.DB
 import com.example.marigold.model.Note.Note
 import com.example.marigold.model.Note.NoteRemoteDao
+import com.example.marigold.ui.theme.darken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -130,7 +131,8 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(rememberScrollState())
+                        .background(brush = Brush.verticalGradient(listOf(MaterialTheme.colorScheme.background.darken(), Color.Transparent))),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Box(
