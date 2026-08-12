@@ -25,7 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.room.Room
-import com.example.marigold.composables.DashboardComposables.HomeScreen
+import com.example.marigold.composables.DashboardComposables.NavScreen
 import com.example.marigold.composables.DashboardComposables.ProfileTabs
 import com.example.marigold.composables.PreAuthComposables.DefineMarigold
 import com.example.marigold.composables.PreAuthComposables.SplashScreen
@@ -107,7 +107,7 @@ fun AppNavigation(
                     )
                 1 ->
                     Box(modifier = Modifier.fillMaxSize().background(brush = Brush.linearGradient(colors = listOf(MaterialTheme.colorScheme.secondary, MaterialTheme.colorScheme.tertiary)), alpha = 0.6f)){
-                        HomeScreen(
+                        NavScreen(
                             overrideNavigationIndx = overrideNavigationIndx,
                             overrideProfileTabs = overrideProfileTabs
                         )
