@@ -81,6 +81,7 @@ import com.example.marigold.composables.refreshDatabases
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Appwrite
 import com.example.marigold.model.Media.Media
+import com.example.marigold.model.Media.MediaRemoteDao
 import com.example.marigold.ui.theme.lighten
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -101,6 +102,7 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
             name = DB.DB_NAME
         ).build().mediaDAO()
     }
+    val remote = MediaRemoteDao()
     val scope = rememberCoroutineScope()
     var mediaItems by remember { mutableStateOf(null as List<Media>?) }
     var loaded by remember { mutableStateOf(false) }
@@ -120,7 +122,9 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                         Intent.FLAG_GRANT_READ_URI_PERMISSION
                     )
                     val response = Appwrite.storeFile(context, uri)
-                    dao.upsert(Media(id = response.id))
+                    val media = Media(id = response.id)
+                    remote.add(media)
+                    dao.upsert(media)
                 }
                 mediaItems = dao.getAll().sortedByDescending { it.date }
             }
@@ -282,6 +286,7 @@ fun MediaThumbnail(media: Media, onClick: () -> Unit) {
 fun PreviewMedia(revertProfile: () -> Unit, previewMedia: Media){
     if(Looper.myLooper()==null) Looper.prepare()
     val context = LocalContext.current
+    val remote = MediaRemoteDao()
     val dao = remember {
         Appwrite.init(context)
         Room.databaseBuilder(
@@ -363,6 +368,7 @@ fun PreviewMedia(revertProfile: () -> Unit, previewMedia: Media){
                             scope.launch {
                                 try {
                                     Appwrite.deleteFile(media.id)
+                                    remote.remove(media.id)
                                     dao.deleteById(media.id)
                                     revertProfile()
                                 } catch (ex : Exception) {
