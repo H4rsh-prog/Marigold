@@ -114,7 +114,7 @@ fun NavScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigatio
                             ) {
                                 Column (modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                                     Icon(painter = painterResource(R.drawable.ic_ornate_divider_minimal), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = modifier.fillMaxWidth().scale(0.5f).rotate(180f).offset(y=-20.dp))
-                                    Icon(painter = painterResource(R.drawable.lamare_della_mi_vita_trasparent), contentDescription = null)
+                                    Icon(painter = painterResource(R.drawable.lamare_della_mi_vita_trasparent), contentDescription = null, modifier = Modifier.offset(y=-50.dp))
                                 }
                             }
                         }
@@ -129,8 +129,8 @@ fun NavScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigatio
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
                                 item {
-                                    Spacer(modifier.height(200.dp))
-                                    Spacer(modifier.fillMaxWidth().height(550.dp)
+                                    Spacer(modifier.height(100.dp))
+                                    Spacer(modifier.fillMaxWidth().height(530.dp)
                                         .background(
                                             brush = Brush.verticalGradient(listOf(
                                                 Color.Transparent,
@@ -141,7 +141,8 @@ fun NavScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigatio
                                 }
                                 item {
                                     Column(Modifier.fillMaxSize().background(lighterBackgroundColor), horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text(text = "${dataHandler.getPreference(dataHandler.DEFINE_MARIGOLD)}", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge, modifier = modifier.fillMaxWidth().offset(x = -10.dp ,y = 80.dp))
+                                        Text(text = "Welcome to Marigold", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleSmall, modifier = modifier.fillMaxWidth().offset(x = -7.dp ,y = 90.dp))
+                                        Text(text = "${dataHandler.getPreference(dataHandler.DEFINE_MARIGOLD)}", textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge, modifier = modifier.fillMaxWidth().offset(x = -7.dp ,y = 90.dp).scale(1.2f))
                                         Icon(painter = painterResource(R.drawable.ic_ornate_divider), contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = modifier.offset(y=60.dp))
                                         Column(
                                             modifier = modifier
@@ -186,7 +187,7 @@ fun NavScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigatio
                                                         .padding(40.dp)
                                                 ) {
                                                     Spacer(modifier.height(20.dp))
-                                                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(lighterBackgroundColor)) {
+                                                    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(darkerBackgroundColor).padding(10.dp)) {
                                                         ProfileTabs.entries.forEach { item ->
                                                             Card(
                                                                 shape = RoundedCornerShape(
@@ -202,7 +203,7 @@ fun NavScreen(modifier: Modifier = Modifier, overrideNavigationIndx : (Navigatio
                                                                     1.5.dp,
                                                                     MaterialTheme.colorScheme.primary
                                                                 ),
-                                                                modifier = Modifier.fillMaxWidth().padding(20.dp),
+                                                                modifier = Modifier.fillMaxWidth().padding(7.dp),
                                                                 onClick = {
                                                                     scope.launch {
                                                                         showProfileTabs = false

@@ -28,9 +28,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -80,6 +82,7 @@ import com.example.marigold.composables.refreshDatabases
 import com.example.marigold.model.DB
 import com.example.marigold.model.Media.Appwrite
 import com.example.marigold.model.Media.Media
+import com.example.marigold.ui.theme.lighten
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -134,12 +137,13 @@ fun MediaComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background.copy(alpha = 0.5f))
+                    .background(MaterialTheme.colorScheme.background.lighten())
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .offset(y = 10.dp)
                 ) {
                     Text(
                         text = "Gallery of Moments",
@@ -329,7 +333,9 @@ fun PreviewMedia(revertProfile: () -> Unit, previewMedia: Media){
                     contentDescription = null,
                     modifier = Modifier
                         .clip(RoundedCornerShape(32.dp))
-                        .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)))
+                        .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)), shape = RoundedCornerShape(32.dp))
+                        .fillMaxHeight(0.8f)
+                        .fillMaxWidth(0.9f)
                         .graphicsLayer {
                             scaleX = scaleState
                             scaleY = scaleState

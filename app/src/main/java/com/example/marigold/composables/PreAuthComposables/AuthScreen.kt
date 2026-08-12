@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
@@ -52,9 +54,14 @@ fun DefineMarigold(
     isInitialized : Boolean
 ){
     var input by remember { mutableStateOf("") }
-    val DEFINE_MARIGOLD by remember { mutableStateOf(dataHandler.getPreference(dataHandler.DEFINE_MARIGOLD)) }
+    var DEFINE_MARIGOLD by remember { mutableStateOf(dataHandler.getPreference(dataHandler.DEFINE_MARIGOLD)) }
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current;
+    var loaded by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(3000)
+        loaded = true
+    }
     Box (
         modifier = modifier
             .fillMaxSize(),
@@ -99,15 +106,16 @@ fun DefineMarigold(
                         },
                         modifier = modifier.fillMaxSize()
                     )
-                    AnimatedVisibility(
-                        visible = DEFINE_MARIGOLD != BuildConfig.defineMarigold,
-                        enter = fadeIn(animationSpec = tween(1000, 3000)),
-                        exit = fadeOut(animationSpec = tween(1000, 3000))
-                    ) {
-                        Text(text = "forgot your marigold? try mine..", color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.clickable(enabled = true, onClick = {
-                            dataHandler.savePreference(dataHandler.DEFINE_MARIGOLD, BuildConfig.defineMarigold)
-                        }))
-                    }
+                }
+                AnimatedVisibility(
+                    visible = DEFINE_MARIGOLD != BuildConfig.defineMarigold && loaded,
+                    enter = fadeIn(animationSpec = tween(1000)),
+                    exit = fadeOut(animationSpec = tween(1000))
+                ) {
+                    Text(text = "forgot your marigold? try mine..", color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.clickable(enabled = true, onClick = {
+                        dataHandler.savePreference(dataHandler.DEFINE_MARIGOLD, BuildConfig.defineMarigold)
+                        DEFINE_MARIGOLD = dataHandler.getPreference(dataHandler.DEFINE_MARIGOLD)
+                    }).scale(0.7f))
                 }
             } else {
                 Text(

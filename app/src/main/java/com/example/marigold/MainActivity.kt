@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         DataHandler(this).initialDefaults()
         setContent {
-            MarigoldTheme {
+            MarigoldTheme(darkTheme = true) {
                 val density = LocalDensity.current
                 val fontScale = minOf(density.fontScale, 1.3f)
                 CompositionLocalProvider(
