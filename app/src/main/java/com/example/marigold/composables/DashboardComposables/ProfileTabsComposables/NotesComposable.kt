@@ -103,10 +103,9 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     var deletingNoteId by remember { mutableStateOf(null as String?) }
     var listOfUpdatingNotes by remember { mutableStateOf(arrayListOf<Note>()) }
     LaunchedEffect(Unit) {
-        delay(300)
-        fell = true
         notes = dao.getAll().sortedByDescending { it.date }
-        delay(800)
+        fell = true
+        delay(100)
         loaded = true
     }
     val paperColor = Color(0xFFFFF9E6)
@@ -120,8 +119,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .animateContentSize(),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AnimatedVisibility(
@@ -145,6 +143,7 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                     Column(
                         modifier = Modifier
                             .fillMaxWidth(0.85f)
+                            .animateContentSize()
                             .background(paperColor)
                             .border(
                                 BorderStroke(
@@ -175,38 +174,40 @@ fun NotesComposable(revertProfile: () -> Unit, backStack: SnapshotStateList<Any>
                             notes?.forEachIndexed { index, note ->
                                 AnimatedVisibility(
                                     visible = loaded && note.id != deletingNoteId,
-                                    enter = scaleIn(animationSpec = tween(600, index * 80)) + fadeIn(),
+                                    enter = scaleIn(animationSpec = tween(600, index * 120)) + fadeIn(),
                                     exit = scaleOut(animationSpec = tween(400)) + fadeOut()
                                 ) {
-                                    NoteItem(
-                                        note = note,
-                                        isExpanded = expandedNote == note,
-                                        onToggle = {
-                                            expandedNote = if (expandedNote == note) null else note
-                                        },
-                                        onEdit = {
-                                            selectedNote = note
-                                            updateNote = true
-                                        },
-                                        onDelete = {
-                                            scope.launch {
-                                                deletingNoteId = note.id
-                                                dao.deleteById(note.id)
-                                                notes = dao.getAll().sortedByDescending { it.date }
+                                    Column {
+                                        NoteItem(
+                                            note = note,
+                                            isExpanded = expandedNote == note,
+                                            onToggle = {
+                                                expandedNote = if (expandedNote == note) null else note
+                                            },
+                                            onEdit = {
+                                                selectedNote = note
+                                                updateNote = true
+                                            },
+                                            onDelete = {
                                                 scope.launch {
-                                                    withContext(Dispatchers.IO) {
-                                                        remote.remove(note.id)
-                                                        refreshDatabases(context, Note::class)
+                                                    deletingNoteId = note.id
+                                                    dao.deleteById(note.id)
+                                                    notes = dao.getAll().sortedByDescending { it.date }
+                                                    scope.launch {
+                                                        withContext(Dispatchers.IO) {
+                                                            remote.remove(note.id)
+                                                            refreshDatabases(context, Note::class)
+                                                        }
                                                     }
+                                                    selectedNote = null
+                                                    deletingNoteId = null
                                                 }
-                                                selectedNote = null
-                                                deletingNoteId = null
-                                            }
-                                        },
-                                        updatingNotes = listOfUpdatingNotes
-                                    )
+                                            },
+                                            updatingNotes = listOfUpdatingNotes
+                                        )
+                                        Spacer(Modifier.height(16.dp))
+                                    }
                                 }
-                                Spacer(Modifier.height(16.dp))
                             }
                         }
                     }
@@ -369,6 +370,7 @@ fun NoteItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .animateContentSize()
             .shadow(if (isExpanded) 8.dp else 2.dp, RoundedCornerShape(12.dp))
             .background(Color.White.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
             .border(
